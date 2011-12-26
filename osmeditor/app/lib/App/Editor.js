@@ -12,8 +12,10 @@
  * @include OpenLayers/Control/ArgParser.js
  * @include OpenLayers/Control/Attribution.js
  * @include OpenLayers/Control/PanZoomBar.js
+ * @include OpenLayers/Layer/SphericalMercator.js
  * @include GeoExt/widgets/MapPanel.js
  * @include GeoExt/state/PermalinkProvider.js
+ * @include App/Map.js
  * @include App/Layer.js
  * @include App/Pan.js
  * @include App/Download.js
@@ -41,7 +43,7 @@ Ext.onReady(function() {
     Ext.QuickTips.init();
 
     // create permalink provider
-    var permalinkProvider = new GeoExt.state.PermalinkProvider();
+    var permalinkProvider = new GeoExt.state.PermalinkProvider({encodeType: false});
     Ext.state.Manager.setProvider(permalinkProvider);
     // update link when state changes
     var onStatechange = function(provider) {
@@ -97,7 +99,7 @@ Ext.onReady(function() {
         },
         map: {
             id: "map",
-            numZoomLevels: 16,
+            xtype: "osm_map",
             projection: epsg900913,
             displayProjection: epsg4326,
             units: "m",
@@ -117,7 +119,7 @@ Ext.onReady(function() {
             controls: [
                 new OpenLayers.Control.Navigation(),
                 new OpenLayers.Control.KeyboardDefaults(),
-                new OpenLayers.Control.MousePosition(),
+                new OpenLayers.Control.MousePosition({displayProjection: epsg4326}),
                 new OpenLayers.Control.ArgParser(),
                 new OpenLayers.Control.Attribution(),
                 new OpenLayers.Control.PanZoomBar({panIcons: false, zoomWorldIcon: false})
