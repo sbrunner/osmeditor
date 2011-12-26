@@ -5,6 +5,7 @@
  * @include OpenLayers/Layer/Vector.js
  * @include OpenLayers/Strategy/BBOX.js
  * @include OpenLayers/Format/OSM.js
+ * @include OSM/Style/Utils.js
  * @include OSM/Style/Mapnik.js
  * @include OSM/Style/JOSM.js
  * @include App/Snapping.js
@@ -30,23 +31,59 @@ App.Layer = Ext.extend(gxp.plugins.Tool, {
         var styleMap = new OpenLayers.StyleMap();
         styleMap.styles["default"].addRules([new OpenLayers.Rule({
             symbolizer: {
-                pointRadius: 5,
-                fillOpacity: 0.4,
+                pointRadius: 3,
+                fillOpacity: 1,
                 fillColor: 'yellow',
+                strokeOpacity: 0,
+                strokeWidth: 20
+            },
+            filter: new OSM.Style.Utils.PointFilter()
+        })]);
+        styleMap.styles.select.addRules([new OpenLayers.Rule({
+            symbolizer: {
+                pointRadius: 3,
+                fillOpacity: 1,
+                fillColor: 'blue',
+                strokeOpacity: 0,
+                strokeWidth: 20
+            },
+            filter: new OSM.Style.Utils.PointFilter()
+        })]);
+        styleMap.styles["default"].addRules([new OpenLayers.Rule({
+            symbolizer: {
+                pointRadius: 5,
                 strokeColor: 'yellow',
                 strokeWidth: 2
             },
-            filter: new OpenLayers.Filter()
+            filter: new OSM.Style.Utils.PathFilter()
         })]);
         styleMap.styles.select.addRules([new OpenLayers.Rule({
             symbolizer: {
                 pointRadius: 5,
-                fillOpacity: 0.6,
-                fillColor: 'blue',
                 strokeColor: 'blue',
                 strokeWidth: 2
             },
-            filter: new OpenLayers.Filter()
+            filter: new OSM.Style.Utils.PathFilter()
+        })]);
+        styleMap.styles["default"].addRules([new OpenLayers.Rule({
+            symbolizer: {
+                pointRadius: 5,
+                fillOpacity: 0.4,
+                fillColor: 'yellow',
+                strokeColor: 'yellow',
+                strokeWidth: 1
+            },
+            filter: new OSM.Style.Utils.PolygonFilter()
+        })]);
+        styleMap.styles.select.addRules([new OpenLayers.Rule({
+            symbolizer: {
+                pointRadius: 5,
+                fillOpacity: 0.5,
+                fillColor: 'blue',
+                strokeColor: 'blue',
+                strokeWidth: 1
+            },
+            filter: new OSM.Style.Utils.PolygonFilter()
         })]);
         styleMap = OSM.Style.JOSM.getStyleMap(styleMap);
         styleMap = OSM.Style.Mapnik.getStyleMap(styleMap);
