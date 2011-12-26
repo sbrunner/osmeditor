@@ -147,102 +147,90 @@ App.Layer = Ext.extend(gxp.plugins.Tool, {
         // manage delete, ...
         if (!this.updating) {
             this.updating = true;
-            if (e && e.feature) {
-                f = e.feature;
-                if (!f.osm_id) {
-                    f.action = 'new';
-                    f.osm_id = this.new_osm_id;
-                    this.new_osm_id -= 1;
-                    if (f.geometry.CLASS_NAME == "OpenLayers.Geometry.Point") {
-                        f.type = 'node';
-                        f.fid = "node." + f.osm_id;
-                        f.geometry.osm_id = f.osm_id;
-                        var snapped = this.target.mapPanel.map.getControlsByClass("App.Snapping")[0].snapped;
-                        if (snapped && snapped.x == f.geometry.x && snapped.y == f.geometry.y) {
-                            this.snappedList[snapped.x + 21000000 + snapped.y * 42000000] = snapped;
-                            this.snappedPoint(f.geometry);
-                        }
-                    }
-                    else {
-                        f.type = 'way';
-                        f.fid = "way." + f.osm_id;
-                        f.geometry.getVertices().forEach(function(p) {
-                            this.addFeatureToPoint(p)
-                        }, this);
-                    }
-                } else {
-                    if (f.action != 'new') {
-                        f.action = 'modified';
-                    }
-                    if (f.geometry.CLASS_NAME != "OpenLayers.Geometry.Point") {
-                        f.geometry.getVertices().forEach(function(p) {
-                            if (!p.osm_id) {
-                                this.addFeatureToPoint(p)
+            try {
+                if (e && e.feature) {
+                    f = e.feature;
+                    if (!f.osm_id) {
+                        f.action = 'new';
+                        f.osm_id = this.new_osm_id;
+                        this.new_osm_id -= 1;
+                        if (f.geometry.CLASS_NAME == "OpenLayers.Geometry.Point") {
+                            f.type = 'node';
+                            f.fid = "node." + f.osm_id;
+                            f.geometry.osm_id = f.osm_id;
+                            var snapped = this.target.mapPanel.map.getControlsByClass("App.Snapping")[0].snapped;
+                            if (snapped && snapped.x == f.geometry.x && snapped.y == f.geometry.y) {
+                                this.snappedList[snapped.x + 21000000 + snapped.y * 42000000] = snapped;
+                                this.snappedPoint(f.geometry);
                             }
-                        }, this);
-                    }
-                }
-            }
-
-            // sort polygone down and by area.
-            getAreaUp = function() {
-                var toMoveUp = [];
-                var others = [];
-                var widerArea = null;
-                var area = 0;
-                osm.features.forEach(function(feature) {
-                    if (feature.geometry instanceof OpenLayers.Geometry.Polygon) {
-                        toMoveUp = toMoveUp.concat(others);
-                        others = [];
-                        if (feature.geometry.getArea() < area) {
-                            toMoveUp.push(feature);
                         }
                         else {
-                            toMoveUp.push(widerArea);
-                            area = feature.geometry.getArea();
-                            widerArea = feature;
+                            f.type = 'way';
+                            f.fid = "way." + f.osm_id;
+                            f.geometry.getVertices().forEach(function(p) {
+                                this.addFeatureToPoint(p)
+                            }, this);
+                        }
+                    } else {
+                        if (f.action != 'new') {
+                            f.action = 'modified';
+                        }
+                        if (f.geometry.CLASS_NAME != "OpenLayers.Geometry.Point") {
+                            f.geometry.getVertices().forEach(function(p) {
+                                if (!p.osm_id) {
+                                    this.addFeatureToPoint(p)
+                                }
+                            }, this);
                         }
                     }
+                }
+
+                var features = [].concat(osm.features); // clone
+                var dirty = false;
+                features.sort(function (f1, f2) {
+                    var t1;
+                    if (f1.geometry.CLASS_NAME == 'OpenLayers.Geometry.Point') {
+                        t1 = 0;
+                    }
+                    else if (f1.geometry.CLASS_NAME == 'OpenLayers.Geometry.LineString') {
+                        t1 = 1
+                    }
                     else {
-                        others.push(feature);
+                        t1 = f1.geometry.getArea() / 30;
+                    }
+                    var t2;
+                    if (f2.geometry.CLASS_NAME == 'OpenLayers.Geometry.Point') {
+                        t2 = 0;
+                    }
+                    else if (f2.geometry.CLASS_NAME == 'OpenLayers.Geometry.LineString') {
+                        t2 = 1
+                    }
+                    else {
+                        t2 = f2.geometry.getArea() / 30;
+                    }
+                    dirty = dirty || (t1 != t2);
+                    return Math.round(t2 - t1);
+                });
+                if (dirty) {
+                    osm.removeAllFeatures();
+                    osm.addFeatures(features);
+                }
+
+                this.target.mapPanel.depandancies = {};
+                var fl = osm.features;
+                fl.forEach(function(f) {
+                    if (f.type != 'node') {
+                        f.geometry.getVertices().forEach(function(p) {
+                            this.addDep(f.osm_id, p.osm_id);
+                        }, this);
                     }
                 }, this);
-                return toMoveUp;
-            };
-            var toMoveUp = getAreaUp();
-            while (toMoveUp.length > 0) {
-                osm.removeFeatures(toMoveUp);
-                osm.addFeatures(toMoveUp);
-                toMoveUp = getAreaUp();
+                this.snappedList = {};
+                this.snappedIndices = [];
             }
-
-            // sort point up.
-            toMoveUp = [];
-            var points = [];
-            osm.features.forEach(function(feature) {
-                if (feature.geometry instanceof OpenLayers.Geometry.Point) {
-                    points.push(feature);
-                }
-                else {
-                    toMoveUp = toMoveUp.concat(points);
-                    points = [];
-                }
-            }, this);
-            osm.removeFeatures(toMoveUp);
-            osm.addFeatures(toMoveUp);
-
-            this.target.mapPanel.depandancies = {};
-            var fl = osm.features;
-            fl.forEach(function(f) {
-                if (f.type != 'node') {
-                    f.geometry.getVertices().forEach(function(p) {
-                        this.addDep(f.osm_id, p.osm_id);
-                    }, this);
-                }
-            }, this);
-            this.snappedList = {};
-            this.snappedIndices = [];
-            this.updating = false;
+            finally {
+                this.updating = false;
+            }
         }
     },
 
