@@ -5,7 +5,6 @@
 /*
  * @include util.js
  * @include widgets/Viewer.js
- * @include plugins/OSMSource.js
  * @include plugins/OLSource.js
  * @include OpenLayers/Control/Navigation.js
  * @include OpenLayers/Control/KeyboardDefaults.js
@@ -94,9 +93,6 @@ Ext.onReady(function() {
             toggleGroup: "tool"
         }],
         sources: {
-            "osm": {
-                ptype: "gxp_osmsource"
-            },
             "ol": {
                 ptype: "gxp_olsource"
             }
@@ -122,11 +118,19 @@ Ext.onReady(function() {
                     numZoomLevels: 22
                 }]
             }, {
-                source: "osm",
-                name: "mapnik",
-                transitionEffect: "resize",
-                wrapDateLine: true,
-                isBaseLayer: true
+                source: "ol",
+                type: "OpenLayers.Layer.XYZ",
+                args: ["mapnik", [
+                    "http://a.tile.openstreetmap.org/${z}/${x}/${y}.png",
+                    "http://b.tile.openstreetmap.org/${z}/${x}/${y}.png",
+                    "http://c.tile.openstreetmap.org/${z}/${x}/${y}.png"
+                ], {
+                    sphericalMercator: true,
+                    wrapDateLine: true,
+                    isBaseLayer: false,
+                    numZoomLevels: 19,
+                    attribution: "Data CC-By-SA by <a href='http://openstreetmap.org/' target='_blank'>OpenStreetMap</a>"
+                }]
             }],
             controls: [
                 new OpenLayers.Control.Navigation(),
