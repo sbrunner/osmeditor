@@ -16,8 +16,9 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
     /** api: method[addActions]
      */
     addActions: function() {
+        var mapPanel = this.target.mapPanel
         this.control = new OpenLayers.Control.SelectFeature(
-            this.target.mapPanel.map.getLayersByName("OSM")[0], {
+            mapPanel.map.getLayersByName("OSM")[0], {
                 onUnSelect: function(f) {
                 },
                 onSelect: function(f) {
@@ -105,7 +106,7 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
             }
         );
 
-        this.map = this.target.mapPanel.map;
+        this.map = mapPanel.map;
 
         var actions = [new GeoExt.Action(this)];
         return App.EditFeature.superclass.addActions.apply(this, [actions]);
