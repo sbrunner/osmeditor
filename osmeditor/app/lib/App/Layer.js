@@ -31,7 +31,7 @@ App.Layer = Ext.extend(gxp.plugins.Tool, {
         styleMap.styles["default"].addRules([new OpenLayers.Rule({
             symbolizer: {
                 pointRadius: 5,
-                fillOpacity: 0.6,
+                fillOpacity: 0.4,
                 fillColor: 'yellow',
                 strokeColor: 'yellow',
                 strokeWidth: 2
