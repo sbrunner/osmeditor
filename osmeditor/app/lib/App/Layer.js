@@ -59,7 +59,6 @@ App.Layer = Ext.extend(gxp.plugins.Tool, {
 
         osm = new OpenLayers.Layer.Vector("OSM", {
             projection: epsg900913,
-            maxResolution: 156543.03390625,
             strategies: [this.target.mapPanel.bboxstrategie],
             protocol: new OpenLayers.Protocol.OSMAPI({
                     url: "http://api.openstreetmap.org/api/0.6/map?",

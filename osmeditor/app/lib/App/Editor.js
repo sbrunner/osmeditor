@@ -6,6 +6,7 @@
  * @include util.js
  * @include widgets/Viewer.js
  * @include plugins/OSMSource.js
+ * @include plugins/OLSource.js
  * @include OpenLayers/Control/Navigation.js
  * @include OpenLayers/Control/KeyboardDefaults.js
  * @include OpenLayers/Control/MousePosition.js
@@ -95,6 +96,9 @@ Ext.onReady(function() {
         sources: {
             "osm": {
                 ptype: "gxp_osmsource"
+            },
+            "ol": {
+                ptype: "gxp_olsource"
             }
         },
         map: {
@@ -109,9 +113,17 @@ Ext.onReady(function() {
                 128 * 156543.03390625],
             maxResolution: 156543.03390625,
             layers: [{
+                source: "ol",
+                type: "OpenLayers.Layer.XYZ",
+                args: ["blank", "no.png", {
+                    sphericalMercator: true,
+                    wrapDateLine: true,
+                    isBaseLayer: true,
+                    numZoomLevels: 22
+                }]
+            }, {
                 source: "osm",
                 name: "mapnik",
-                group: "background",
                 transitionEffect: "resize",
                 wrapDateLine: true,
                 isBaseLayer: true
