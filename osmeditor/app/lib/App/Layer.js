@@ -111,6 +111,7 @@ App.Layer = Ext.extend(gxp.plugins.Tool, {
             this.update(e);
         });
 
+        // should be directly added to be accessible by others plugins
         this.target.mapPanel.map.addLayer(osm);
         this.target.addListener('ready', function() {
             this.target.mapPanel.map.removeLayer(osm);
