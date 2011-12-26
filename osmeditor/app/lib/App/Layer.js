@@ -27,64 +27,42 @@ App.Layer = Ext.extend(gxp.plugins.Tool, {
     /** private */
     snappedIndices: {},
 
-    addOutput: function(config) {
-        var styleMap = new OpenLayers.StyleMap();
-        styleMap.styles["default"].addRules([new OpenLayers.Rule({
+    addStyle: function(color, destination) {
+        destination.addRules([new OpenLayers.Rule({
             symbolizer: {
                 pointRadius: 3,
                 fillOpacity: 1,
-                fillColor: 'yellow',
+                fillColor: color,
                 strokeOpacity: 0,
                 strokeWidth: 20
             },
             filter: new OSM.Style.Utils.PointFilter()
         })]);
-        styleMap.styles.select.addRules([new OpenLayers.Rule({
-            symbolizer: {
-                pointRadius: 3,
-                fillOpacity: 1,
-                fillColor: 'blue',
-                strokeOpacity: 0,
-                strokeWidth: 20
-            },
-            filter: new OSM.Style.Utils.PointFilter()
-        })]);
-        styleMap.styles["default"].addRules([new OpenLayers.Rule({
+        destination.addRules([new OpenLayers.Rule({
             symbolizer: {
                 pointRadius: 5,
-                strokeColor: 'yellow',
+                strokeColor: color,
                 strokeWidth: 2
             },
             filter: new OSM.Style.Utils.PathFilter()
         })]);
-        styleMap.styles.select.addRules([new OpenLayers.Rule({
-            symbolizer: {
-                pointRadius: 5,
-                strokeColor: 'blue',
-                strokeWidth: 2
-            },
-            filter: new OSM.Style.Utils.PathFilter()
-        })]);
-        styleMap.styles["default"].addRules([new OpenLayers.Rule({
+        destination.addRules([new OpenLayers.Rule({
             symbolizer: {
                 pointRadius: 5,
                 fillOpacity: 0.4,
-                fillColor: 'yellow',
-                strokeColor: 'yellow',
+                fillColor: color,
+                strokeColor: color,
                 strokeWidth: 1
             },
             filter: new OSM.Style.Utils.PolygonFilter()
         })]);
-        styleMap.styles.select.addRules([new OpenLayers.Rule({
-            symbolizer: {
-                pointRadius: 5,
-                fillOpacity: 0.5,
-                fillColor: 'blue',
-                strokeColor: 'blue',
-                strokeWidth: 1
-            },
-            filter: new OSM.Style.Utils.PolygonFilter()
-        })]);
+    },
+
+    addOutput: function(config) {
+        var styleMap = new OpenLayers.StyleMap();
+        this.addStyle('yellow', styleMap.styles["default"]);
+        this.addStyle('blue', styleMap.styles["select"]);
+        this.addStyle('green', styleMap.styles["temporary"]);
         styleMap = OSM.Style.JOSM.getStyleMap(styleMap);
         styleMap = OSM.Style.Mapnik.getStyleMap(styleMap);
 
