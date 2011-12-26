@@ -183,25 +183,54 @@ App.Layer = Ext.extend(gxp.plugins.Tool, {
                     }
                 }
             }
-/*                    var dirty = false;
-            osm.features.sort(function (f1, f2) {
-                t1 = 0
-                if (f1.geometry.CLASS_NAME == 'OpenLayers.Geometry.Point') {
-                    t1 = 3;
+
+            // sort polygone down and by area.
+            getAreaUp = function() {
+                var toMoveUp = [];
+                var others = [];
+                var widerArea = null;
+                var area = 0;
+                osm.features.forEach(function(feature) {
+                    if (feature.geometry instanceof OpenLayers.Geometry.Polygon) {
+                        toMoveUp = toMoveUp.concat(others);
+                        others = [];
+                        if (feature.geometry.getArea() < area) {
+                            toMoveUp.push(feature);
+                        }
+                        else {
+                            toMoveUp.push(widerArea);
+                            area = feature.geometry.getArea();
+                            widerArea = feature;
+                        }
+                    }
+                    else {
+                        others.push(feature);
+                    }
+                }, this);
+                return toMoveUp;
+            };
+            var toMoveUp = getAreaUp();
+            while (toMoveUp.length > 0) {
+                osm.removeFeatures(toMoveUp);
+                osm.addFeatures(toMoveUp);
+                toMoveUp = getAreaUp();
+            }
+
+            // sort point up.
+            toMoveUp = [];
+            var points = [];
+            osm.features.forEach(function(feature) {
+                if (feature.geometry instanceof OpenLayers.Geometry.Point) {
+                    points.push(feature);
                 }
-                else if (f1.geometry.CLASS_NAME == 'OpenLayers.Geometry.LineString') {
-                    t1 = 2
+                else {
+                    toMoveUp = toMoveUp.concat(points);
+                    points = [];
                 }
-                t2 = 0
-                if (f2.geometry.CLASS_NAME == 'OpenLayers.Geometry.Point') {
-                    t2 = 3;
-                }
-                else if (f2.geometry.CLASS_NAME == 'OpenLayers.Geometry.LineString') {
-                    t2 = 2
-                }
-                dirty = dirty || (t1 != t2);
-                return t2 - t1;
-            });*/
+            }, this);
+            osm.removeFeatures(toMoveUp);
+            osm.addFeatures(toMoveUp);
+
             this.target.mapPanel.depandancies = {};
             var fl = osm.features;
             fl.forEach(function(f) {
@@ -213,9 +242,6 @@ App.Layer = Ext.extend(gxp.plugins.Tool, {
             }, this);
             this.snappedList = {};
             this.snappedIndices = [];
-/*                    if (dirty) {
-                osm.redraw();
-            }*/
             this.updating = false;
         }
     },
