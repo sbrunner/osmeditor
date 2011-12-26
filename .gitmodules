@@ -1,0 +1,18 @@
+[submodule "osmeditor/lib/openlayers"]
+	path = osmeditor/lib/openlayers
+	url = git@github.com:sbrunner/openlayers.git
+[submodule "osmeditor/lib/ext/Ext"]
+	path = osmeditor/lib/ext/Ext
+	url = git://github.com/probonogeek/extjs.git
+[submodule "osmeditor/lib/OSM"]
+	path = osmeditor/lib/OSM
+	url = git@github.com:sbrunner/OpenLayers-OSM.git
+[submodule "osmeditor/lib/LoadingPanel"]
+	path = osmeditor/lib/LoadingPanel
+	url = git@github.com:sbrunner/OpenLayers-LoadingPanel.git
+[submodule "osmeditor/lib/gxp"]
+	path = osmeditor/lib/gxp
+	url = https://github.com/opengeo/gxp.git
+[submodule "osmeditor/lib/geoext"]
+	path = osmeditor/lib/geoext
+	url = git@github.com:geoext/geoext.git
