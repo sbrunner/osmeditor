@@ -76,8 +76,7 @@ App.Layer = Ext.extend(gxp.plugins.Tool, {
                 })
             }),
             styleMap: styleMap,
-            numZoomLevels: 26,
-            attribution: "Data CC-By-SA by <a href='http://openstreetmap.org/'>OpenStreetMap</a>",
+            attribution: "Data CC-By-SA by <a href='http://openstreetmap.org/' target='_blank'>OpenStreetMap</a>",
             getFeaturesBy: function(property, value) {
                 var features = [];
                 for (var i=0, len=this.features.length; i<len; ++i) {
