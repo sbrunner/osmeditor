@@ -1,0 +1,18 @@
+A OSM editor using the web standards.
+
+Installation
+============
+
+Get git submodules:
+
+  git submodule update --init
+
+Install the buildout environment:
+
+  python bootstrap.py --distribute --version 1.5.2
+
+Build the project:
+
+  buildout/bin/buildout
+
+Open osmeditor/osmedit.html
