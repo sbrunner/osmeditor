@@ -61,6 +61,14 @@ App.ModifyFeatureGeometry = Ext.extend(gxp.plugins.Tool, {
         this.control.virtualStyle.strokeOpacity = 0.1;
         this.control.virtualStyle.strokeWidth = 20;
 
+        this.control.dragVertex = function(vertex, pixel) {
+            if (this.feature.geometry.CLASS_NAME != "OpenLayers.Geometry.Point" && vertex._index) {
+                var f = new OpenLayers.Feature.Vector();
+                f.geometry = vertex.geometry;
+                this.feature.layer.addFeatures(f);
+            }
+            OpenLayers.Control.ModifyFeature.prototype.dragVertex.apply(this, arguments);
+        };
         this.map = this.target.mapPanel.map;
 
         var actions = [new GeoExt.Action(this)];
