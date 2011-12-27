@@ -36,12 +36,21 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
                     fieldLabel: OpenLayers.i18n('Change set comment'),
                     xtype: 'textfield',
                     name: 'comment',
-                    allowBlank: false
+                    allowBlank: false,
+                    listeners: {
+                        specialkey: function(field, e) {
+                            if (e.getKey() == e.ENTER) {
+                                win.getLayout().setActiveItem('result');
+                                this.save(Ext.getCmp('ask').getForm().getValues()['comment']);
+                            }
+                        },
+                        scope: this
+                    }
                 }],
                 buttons: [{
                     text: OpenLayers.i18n('Save'),
                     handler : function(e) {
-                        win.getLayout().setActiveItem('result')
+                        win.getLayout().setActiveItem('result');
                         this.save(Ext.getCmp('ask').getForm().getValues()['comment']);
                     },
                     scope: this
