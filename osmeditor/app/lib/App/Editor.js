@@ -13,6 +13,7 @@
  * @include OpenLayers/Control/Attribution.js
  * @include OpenLayers/Control/PanZoomBar.js
  * @include OpenLayers/Layer/SphericalMercator.js
+ * @include OpenLayers/Control/LoadingPanel.js
  * @include GeoExt/widgets/MapPanel.js
  * @include GeoExt/state/PermalinkProvider.js
  * @include App/Map.js
@@ -139,6 +140,7 @@ Ext.onReady(function() {
                 new OpenLayers.Control.MousePosition({displayProjection: epsg4326}),
                 new OpenLayers.Control.ArgParser(),
                 new OpenLayers.Control.Attribution(),
+                new OpenLayers.Control.LoadingPanel(),
                 new OpenLayers.Control.PanZoomBar({panIcons: false, zoomWorldIcon: false})
             ]
         }

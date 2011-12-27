@@ -1,0 +1,28 @@
+div.olControlAttribution {
+    left: 3px;
+    right: auto;
+    bottom: 0;
+}
+div.olControlPermalink {
+    bottom: 1.2em;
+}
+div.olControlMousePosition, div.olControlAttribution, div.olControlPermalink {
+    font-family: sans-serif;
+    font-size: smaller;
+}
+div.olControlLoadingPanel {
+    background-image: url(../images/waiting.gif);
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.4;
+    width: 32px;
+    height: 32px;
+    bottom: 2.3em;
+    right: 3px;
+}
+a {
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
