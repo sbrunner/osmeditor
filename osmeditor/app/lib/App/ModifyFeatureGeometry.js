@@ -53,6 +53,14 @@ App.ModifyFeatureGeometry = Ext.extend(gxp.plugins.Tool, {
                 }
             }
         );
+        this.control.virtualStyle.display = 1;
+        this.control.virtualStyle.pointRadius = 3;
+        this.control.virtualStyle.fillOpacity = 0.8;
+        this.control.virtualStyle.fillColor = 'blue';
+        this.control.virtualStyle.strokeColor = 'blue';
+        this.control.virtualStyle.strokeOpacity = 0.1;
+        this.control.virtualStyle.strokeWidth = 20;
+
         this.map = this.target.mapPanel.map;
 
         var actions = [new GeoExt.Action(this)];

@@ -42,7 +42,7 @@ App.Layer = Ext.extend(gxp.plugins.Tool, {
             symbolizer: {
                 pointRadius: 5,
                 strokeColor: color,
-                strokeWidth: 2
+                strokeWidth: 3
             },
             filter: new OSM.Style.Utils.PathFilter()
         })]);
