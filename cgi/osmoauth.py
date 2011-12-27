@@ -39,16 +39,17 @@ class OSMOAuth:
         self.client = oauth.Client(self.consumer)
         data = session.data
         self.data = data
+        self.session = session
         args = FieldStorage()
         if args.list != None and args.has_key('reset'):
             data['oauth_token'] = None
             data['oauth_token_secret'] = None
-            
+
         if data.get('oauth_token') != None:
             self.is_authorized = data['oauth_authorized'] == '1'
         else:
             self.request_token()
-            
+
         if not self.is_authorized:
             token = self.request_access_token()
             if not 'oauth_token' in token:
@@ -68,7 +69,7 @@ class OSMOAuth:
         self.data['oauth_token'] = self.token['oauth_token']
         self.data['oauth_token_secret'] = self.token['oauth_token_secret']
         self.data['oauth_authorized'] = '0'
-        print session.cookie
+        print self.session.cookie
         print "Status: 302 Moved"
         print "Location: %s" % (OSMOAuth.API_URL+'/oauth/authorize?oauth_token='+self.token['oauth_token'])
         print
@@ -85,14 +86,14 @@ class OSMOAuth:
             params["oauth_callback"] = callback
         resp, content = self.client.request(self.request_token_url(), "POST", body=urllib.urlencode(params))
         return dict(cgi.parse_qsl(content))
-        
+
     def request_access_token(self):
         token = oauth.Token(self.data['oauth_token'], self.data['oauth_token_secret'])
-        
+
         self.client = oauth.Client(self.consumer, token)
         resp, content = self.client.request(self.access_token_url(), "POST")
         return dict(cgi.parse_qsl(content))
-        
+
     def access_with(self):
         access_token = oauth.Token(self.data['oauth_token'], self.data['oauth_token_secret'])
         self.client = oauth.Client(self.consumer, access_token)
@@ -100,11 +101,11 @@ class OSMOAuth:
     def post(self, path, data=None):
         resp, content = self.client.request(OSMOAuth.API_URL + path, "POST", data)
         return content
-        
+
     def get(self, path):
         resp, content = self.client.request(OSMOAuth.API_URL + path)
         return content
-        
+
     def put(self, path, data=None):
         resp, content = self.client.request(OSMOAuth.API_URL + path, "PUT", data)
         return content
