@@ -149,7 +149,7 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
                 });
             }
         });
-        this.target.mapPanel.featuresDeleted.forEach(function(f) {
+        this.target.mapPanel.deletedFeatures.forEach(function(f) {
             todo.push(function() {
                 OpenLayers.Request.issue({
                     url: 'http://stephane-brunner.ch/cgi-bin/osm.py',

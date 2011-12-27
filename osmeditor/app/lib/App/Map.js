@@ -11,6 +11,8 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
     /* the used display projection */
     displayProjection: null,
 
+    deletedFeatures: [],
+
     /** private: method[initComponent]
      *  Initializes the map panel. Creates an OpenLayers map if
      *  none was provided in the config options passed to the

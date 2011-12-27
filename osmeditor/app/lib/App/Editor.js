@@ -27,6 +27,7 @@
  * @include App/DragFeature.js
  * @include App/ModifyFeatureGeometry.js
  * @include App/EditFeature.js
+ * @include App/DeleteFeature.js
  */
 
 var app;
@@ -90,6 +91,9 @@ Ext.onReady(function() {
             toggleGroup: "tool"
         }, {
             ptype: "osm_editfeature",
+            toggleGroup: "tool"
+        }, {
+            ptype: "osm_deletefeature",
             toggleGroup: "tool"
         }],
         sources: {
