@@ -1,6 +1,14 @@
 
 /*
  * @requires GeoExt/widgets/MapPanel.js
+ * @include OpenLayers/Protocol/OSMAPI.js
+ * @include OpenLayers/Layer/Vector.js
+ * @include OpenLayers/Strategy/BBOX.js
+ * @include OpenLayers/Format/OSM.js
+ * @include OSM/Style/Utils.js
+ * @include OSM/Style/Mapnik.js
+ * @include OSM/Style/JOSM.js
+ * @include App/Snapping.js
  */
 
 Ext.namespace("App");
