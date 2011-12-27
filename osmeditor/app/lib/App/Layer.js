@@ -208,8 +208,9 @@ App.Layer = Ext.extend(gxp.plugins.Tool, {
                     else {
                         t2 = f2.geometry.getArea() / 30;
                     }
-                    dirty = dirty || (t1 != t2);
-                    return Math.round(t2 - t1);
+                    var result = t2 - t1
+                    dirty = dirty || result >= 1;
+                    return result;
                 });
                 if (dirty) {
                     osm.removeAllFeatures();
