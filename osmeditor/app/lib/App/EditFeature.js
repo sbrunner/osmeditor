@@ -74,19 +74,20 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
                 f.defaultStyle = f.layer.staticStyleMap.createSymbolizer(f);
             });
             grid.getBottomToolbar().add({
-                text   : OpenLayers.i18n("Delete"),
+                text: OpenLayers.i18n("Delete"),
                 handler: function() {
                     store.remove(grid.getSelectionModel().getSelected());
                     grid.getView().refresh();
                 }
             });
             grid.getBottomToolbar().add({
-                text   : OpenLayers.i18n("Add"),
+                text: OpenLayers.i18n("Add"),
                 handler: function() {
                     var index = store.getCount();
                     store.insert(index, new Property({property: '', value: ''}));
                     grid.getView().refresh();
                     grid.getSelectionModel().selectRow(index);
+                    grid.startEditing(index, 0);
                 }
             });
             var postFix = "";
