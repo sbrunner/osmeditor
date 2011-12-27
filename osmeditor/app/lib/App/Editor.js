@@ -16,7 +16,6 @@
  * @include GeoExt/widgets/MapPanel.js
  * @include GeoExt/state/PermalinkProvider.js
  * @include App/Map.js
- * @include App/Layer.js
  * @include App/Pan.js
  * @include App/Download.js
  * @include App/Login.js
@@ -59,8 +58,6 @@ Ext.onReady(function() {
             items: ['map']
         },
         tools: [{
-            ptype: "osm_layer"
-        }, {
             ptype: "osm_pan",
             toggleGroup: "tool",
             pressed: true
@@ -146,6 +143,13 @@ Ext.onReady(function() {
             ]
         }
     });
+
+    app.addListener('ready', function() {
+        var map = app.mapPanel.map;
+        var osm = map.getLayersByName("OSM")[0];
+        map.removeLayer(osm);
+        map.addLayer(osm);
+    }, this);
 });
 
 

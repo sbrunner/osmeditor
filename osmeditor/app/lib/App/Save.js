@@ -12,13 +12,68 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
     text: OpenLayers.i18n("Save"),
 
     handler: function() {
+        this.resultPanel = new Ext.Panel({ id: 'result' });
+        var win = new Ext.Window({
+            title: OpenLayers.i18n("Save"),
+            width: 400,
+            height: 180,
+            layout: 'card',
+            closable: false,
+            activeItem: 'ask',
+            items: [{
+                id: 'ask',
+                xtype: 'form',
+                labelWidth: 150,
+                style: {
+                    width: '100%',
+                    padding: '10px'
+                },
+                bodyStyle: {
+                    backgroundColor: 'transparent',
+                    padding: '10px'
+                },
+                items: [{
+                    fieldLabel: OpenLayers.i18n('Change set comment'),
+                    xtype: 'textfield',
+                    name: 'comment',
+                    allowBlank: false
+                }],
+                buttons: [{
+                    text: OpenLayers.i18n('Save'),
+                    handler : function(e) {
+                        win.getLayout().setActiveItem('result')
+                        this.save(Ext.getCmp('ask').getForm().getValues()['comment']);
+                    },
+                    scope: this
+                }, {
+                    text: OpenLayers.i18n('Cancel'),
+                    bodyStyle: {
+                        backgroundColor: 'transparent',
+                        padding: '10px'
+                    },
+                    handler : function(e) {
+                        win.close();
+                    },
+                    scope: this
+                }]
+            }, this.resultPanel]
+        });
+        this.win = win;
+        win.show();
+    },
+
+    save: function(comment) {
         var newNodes = [];
         var newWays = [];
         var todoPos = -1; // -1 mean not started
         var todo = [];
         var changeset;
+        var resultPanel = this.resultPanel;
+        var win = this.win;
+        var mapPanel = this.target.mapPanel;
         var todoNext = function() {
             todoPos += 1;
+            resultPanel.update(OpenLayers.i18n('Saved: ') + todoPos + '/' + todo.length);
             if (todoPos < todo.length) {
                 todo[todoPos]();
             }
@@ -30,15 +85,18 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
                     'action': '/api/0.6/changeset/' + changeset + '/close',
                     'method': 'PUT'
                 },
-                failure: function(r) { alert(OpenLayer.i18n("Unable to create a node.") + "\n" + r.statusText + "\n" + r.responseText); update(); }
+                failure: function(r) { alert(OpenLayer.i18n("Unable to close the changeset.") + "\n" + r.statusText + "\n" + r.responseText); update(); }
             });
-            update();
+            todoPos += 1;
+            resultPanel.update(OpenLayers.i18n('Saved: ') + todoPos + '/' + todo.length);
+            mapPanel.update();
+            win.close();
         };
         todo.push(function() {
             OpenLayers.Request.GET({
                 url: "http://stephane-brunner.ch/cgi-bin/osm.py",
                 params: {
-                    'new': 'TestHTMLEditor'
+                    'new': comment
                 },
                 success: function(r) {
                     changeset = r.responseText.replace(/^\s+|\s+$/g, '');
@@ -87,7 +145,11 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
                     f.action = 'commited';
                     todoNext();
                 },
-                failure: function(r) { alert(OpenLayer.i18n("Unable to create a node.") + "\n" + r.statusText + "\n" + r.responseText); finish(); }
+                failure: function(r) {
+                    alert(OpenLayer.i18n("Unable to create a node.") + "\n" +
+                            r.statusText + "\n" + r.responseText);
+                    finish();
+                }
             });
         };
         newNodes.forEach(function(f) {
@@ -140,12 +202,12 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
         this.target.mapPanel.map.getLayersByName("OSM")[0].getFeaturesBy('action', 'modified').forEach(function(f) {
             if (f.type == 'node') {
                 todo.push(function() {
-                    sendNode(f, '/api/0.6/node/#' + f.osm_id, 'PUT');
+                    sendNode(f, '/api/0.6/node/' + f.osm_id, 'PUT');
                 });
             }
             else {
                 todo.push(function() {
-                    sendWay(f, '/api/0.6/way/#' + f.osm_id, 'PUT');
+                    sendWay(f, '/api/0.6/way/' + f.osm_id, 'PUT');
                 });
             }
         });
@@ -155,15 +217,18 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
                     url: 'http://stephane-brunner.ch/cgi-bin/osm.py',
                     params: {
                         'method': 'DELETE',
-                        'action': '/api/0.6/' + f.type + '/#' + f.osm_id
+                        'action': '/api/0.6/' + f.type + '/' + f.osm_id
                     },
                     success: function(r) {
                         this.target.mapPanel.featuresDeleted = this.target.mapPanel.featuresDeleted.splice(
                                 this.target.mapPanel.featuresDeleted.indexOf(f), 1);
                         todoNext();
                     },
-                    failure: function(r) { alert(OpenLayer.i18n("Unable to create a node.") + "\n" +
-                            r.statusText + "\n" + r.responseText); finish(); }
+                    failure: function(r) {
+                        alert(OpenLayer.i18n("Unable to deleto object.") + "\n" +
+                                r.statusText + "\n" + r.responseText);
+                        finish();
+                    }
                 });
             });
         }, this);
@@ -175,6 +240,7 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
     /** api: method[addActions]
      */
     addActions: function() {
+        this.scope = this;
         var actions = [new Ext.Action(this)];
         return App.Save.superclass.addActions.apply(this, [actions]);
     }

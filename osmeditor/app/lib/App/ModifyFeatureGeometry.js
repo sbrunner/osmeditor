@@ -66,6 +66,9 @@ App.ModifyFeatureGeometry = Ext.extend(gxp.plugins.Tool, {
                 var f = new OpenLayers.Feature.Vector();
                 f.geometry = vertex.geometry;
                 this.feature.layer.addFeatures(f);
+                if (this.feature.action != 'new') {
+                    this.feature.action = "modified";
+                }
             }
             OpenLayers.Control.ModifyFeature.prototype.dragVertex.apply(this, arguments);
         };
