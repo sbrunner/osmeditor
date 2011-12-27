@@ -160,8 +160,6 @@ App.Layer = Ext.extend(gxp.plugins.Tool, {
     },
 
     update: function(e) {
-        // var fl = e.features;
-        // manage delete, ...
         if (!this.updating) {
             this.updating = true;
             try {
@@ -242,8 +240,7 @@ App.Layer = Ext.extend(gxp.plugins.Tool, {
                 }
 
                 this.target.mapPanel.depandancies = {};
-                var fl = osm.features;
-                fl.forEach(function(f) {
+                osm.features.forEach(function(f) {
                     if (f.type != 'node') {
                         f.geometry.getVertices().forEach(function(p) {
                             this.addDep(f.osm_id, p.osm_id);
@@ -308,7 +305,7 @@ App.Layer = Ext.extend(gxp.plugins.Tool, {
                     var dist = snapped.toIndicesDistance[i];
                     if (f.geometry.CLASS_NAME != "OpenLayers.Geometry.Point") {
                         if (this.snappedIndices[f.fid]) {
-                            this.snappedIndices.forEach(function (a) {
+                            this.snappedIndices[f.fid].forEach(function (a) {
                                 if (a[0] < oldIndex) {
                                     index += 1;
                                 }
