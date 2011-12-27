@@ -70,6 +70,8 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
                 if (e.record.data.property != '' && e.record.data.value != '') {
                     f.attributes[e.record.data.property] = e.record.data.value;
                 }
+                f.selectStyle = f.layer.staticStyleMap.createSymbolizer(f, "select");
+                f.defaultStyle = f.layer.staticStyleMap.createSymbolizer(f);
             });
             grid.getBottomToolbar().add({
                 text   : OpenLayers.i18n("Delete"),

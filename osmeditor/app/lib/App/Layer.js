@@ -59,12 +59,22 @@ App.Layer = Ext.extend(gxp.plugins.Tool, {
     },
 
     addOutput: function(config) {
-        var styleMap = new OpenLayers.StyleMap();
+        var styleMap = new OpenLayers.StyleMap(null, {
+            createSymbolizer: function(feature, intent) {
+                if (intent == 'select' && feature && feature.selectStyle) {
+                    return feature.selectStyle;
+                }
+                else if ((!intent || intent == 'default') && feature && feature.defaultStyle) {
+                    return feature.defaultStyle;
+                }
+                else {
+                    return OpenLayers.StyleMap.prototype.createSymbolizer.apply(this, arguments);
+                }
+            }
+        });
         this.addStyle('yellow', styleMap.styles["default"]);
         this.addStyle('blue', styleMap.styles["select"]);
         this.addStyle('green', styleMap.styles["temporary"]);
-        styleMap = OSM.Style.JOSM.getStyleMap(styleMap);
-        styleMap = OSM.Style.Mapnik.getStyleMap(styleMap);
 
         this.target.mapPanel.bboxstrategie = new OpenLayers.Strategy.BBOX({
             ratio: 1.2,
@@ -102,6 +112,13 @@ App.Layer = Ext.extend(gxp.plugins.Tool, {
                 return features;
             }
         });
+
+        osm.staticStyleMap = new OpenLayers.StyleMap();
+        this.addStyle('yellow', osm.staticStyleMap.styles["default"]);
+        this.addStyle('blue', osm.staticStyleMap.styles["select"]);
+        this.addStyle('green', osm.staticStyleMap.styles["temporary"]);
+        osm.staticStyleMap = OSM.Style.JOSM.getStyleMap(osm.staticStyleMap);
+        osm.staticStyleMap = OSM.Style.Mapnik.getStyleMap(osm.staticStyleMap);
 
         osm.events.register('sketchcomplete', this, function(e) {
             this.update(e);
@@ -184,6 +201,13 @@ App.Layer = Ext.extend(gxp.plugins.Tool, {
                         }
                     }
                 }
+
+                osm.features.forEach(function(f) {
+                    if (!f.defautStyle) {
+                        f.selectStyle = osm.staticStyleMap.createSymbolizer(f, "select");
+                        f.defaultStyle = osm.staticStyleMap.createSymbolizer(f);
+                    }
+                }, this);
 
                 var features = [].concat(osm.features); // clone
                 var dirty = false;
