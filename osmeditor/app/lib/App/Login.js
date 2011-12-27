@@ -4,17 +4,17 @@
  */
 
 Ext.namespace("App");
- 
+
 App.Login = Ext.extend(gxp.plugins.Tool, {
     ptype: "osm_login",
-    
+
     text: OpenLayers.i18n("Login"),
-    
+
     handler: function() {
         var win = new Ext.Window({
             title: OpenLayers.i18n("Login"),
-            width: 840,
-            height: 400,
+            width: '90%',
+            height: this.target.mapPanel.getHeight() * 0.9,
             layout: 'fit',
             html: '<iframe width="100%" height="100%" style="border: none;" src="http://stephane-brunner.ch/cgi-bin/osm.py?login=1"></iframe>',
             defaultButtons: [new Ext.Action({
