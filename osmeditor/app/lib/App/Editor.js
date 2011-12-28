@@ -28,6 +28,7 @@
  * @include App/ModifyFeatureGeometry.js
  * @include App/EditFeature.js
  * @include App/DeleteFeature.js
+ * @include App/MenuShortcut.js
  */
 
 var app;
@@ -63,6 +64,9 @@ Ext.onReady(function() {
             toggleGroup: "tool",
             pressed: true
         }, {
+            ptype: "cgxp_menushortcut",
+            type: '-'
+        }, {
             ptype: "osm_download"
         }, {
             ptype: "osm_login"
@@ -73,6 +77,9 @@ Ext.onReady(function() {
             text: OpenLayers.i18n("Revert all"),
             force: true
         }, {
+            ptype: "cgxp_menushortcut",
+            type: '-'
+        }, {
             ptype: "osm_createpoint",
             toggleGroup: "tool"
         }, {
@@ -81,6 +88,9 @@ Ext.onReady(function() {
         }, {
             ptype: "osm_createpolygon",
             toggleGroup: "tool"
+        }, {
+            ptype: "cgxp_menushortcut",
+            type: '-'
         }, {
             ptype: "osm_dragfeature",
             toggleGroup: "tool"
