@@ -43,7 +43,7 @@ App.DragFeature = Ext.extend(gxp.plugins.Tool, {
             },
             upFeature: function(feature) {
                 OpenLayers.Element.removeClass(mapPanel.map.viewPortDiv, "olDownFeature");
-                OpenLayers.Control.DragFeature.prototype.apply(this, arguments)
+                OpenLayers.Control.DragFeature.prototype.upFeature.apply(this, arguments)
             },
             onDrag: function(f) {
                 if (f.type == 'node' && !f.action) {
