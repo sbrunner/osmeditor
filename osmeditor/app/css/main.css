@@ -1,3 +1,18 @@
+div.olControlDragFeatureOver {
+}
+div.olOverFeaturePoint {
+    cursor: url('../images/cursor/selectnode.cur'), url('../images/cursor/selectnode.png'), pointer;
+}
+div.olOverFeatureLine {
+    cursor: url('../images/cursor/selectway.cur'), url('../images/cursor/selectway.png'), pointer;
+}
+div.olOverFeaturePolygon {
+    cursor: url('../images/cursor/selectpolygon.cur'), url('../images/cursor/selectpolygon.png'), pointer;
+}
+div.olDownFeature {
+    cursor: move;
+}
+
 div.olControlAttribution {
     left: 3px;
     right: auto;

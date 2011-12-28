@@ -19,7 +19,22 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
         var mapPanel = this.target.mapPanel
         var control = new OpenLayers.Control.SelectFeature(
             mapPanel.map.getLayersByName("OSM")[0], {
-                onUnSelect: function(f) {
+                hover: true, // to call overFeature / outFeature
+                overFeature: function(feature) {
+                    if (feature.geometry.CLASS_NAME == "OpenLayers.Geometry.Point") {
+                        OpenLayers.Element.addClass(mapPanel.map.viewPortDiv, "olOverFeaturePoint");
+                    }
+                    else if (feature.geometry.CLASS_NAME == "OpenLayers.Geometry.LineString") {
+                        OpenLayers.Element.addClass(mapPanel.map.viewPortDiv, "olOverFeatureLine");
+                    }
+                    else if (feature.geometry.CLASS_NAME == "OpenLayers.Geometry.Polygon") {
+                        OpenLayers.Element.addClass(mapPanel.map.viewPortDiv, "olOverFeaturePolygon");
+                    }
+                },
+                outFeature: function(feature) {
+                    OpenLayers.Element.removeClass(mapPanel.map.viewPortDiv, "olOverFeaturePoint");
+                    OpenLayers.Element.removeClass(mapPanel.map.viewPortDiv, "olOverFeatureLine");
+                    OpenLayers.Element.removeClass(mapPanel.map.viewPortDiv, "olOverFeaturePolygon");
                 }
             }
         );

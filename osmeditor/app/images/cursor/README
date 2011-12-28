@@ -1,0 +1,5 @@
+hs=7
+
+icotool -c --hotspot-x=$hs --hotspot-y=$hs -o selectnode.cur selectnode.png
+icotool -c --hotspot-x=$hs --hotspot-y=$hs -o selectway.cur selectway.png
+icotool -c --hotspot-x=$hs --hotspot-y=$hs -o selectpolygon.cur selectpolygon.png
