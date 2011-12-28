@@ -99,17 +99,13 @@ class OSMOAuth:
         self.client = oauth.Client(self.consumer, access_token)
 
     def post(self, path, data=None):
-        resp, content = self.client.request(OSMOAuth.API_URL + path, "POST", data)
-        return content
+        return self.client.request(OSMOAuth.API_URL + path, "POST", data)
 
     def get(self, path):
-        resp, content = self.client.request(OSMOAuth.API_URL + path)
-        return content
+        return self.client.request(OSMOAuth.API_URL + path)
 
     def put(self, path, data=None):
-        resp, content = self.client.request(OSMOAuth.API_URL + path, "PUT", data)
-        return content
+        return self.client.request(OSMOAuth.API_URL + path, "PUT", data)
 
     def delete(self, path, data=None):
-        resp, content = self.client.request(OSMOAuth.API_URL + path, "DELETE", data)
-        return content
+        return self.client.request(OSMOAuth.API_URL + path, "DELETE", data)

@@ -12,7 +12,8 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
     text: OpenLayers.i18n("Save"),
 
     handler: function() {
-        this.resultPanel = new Ext.Panel({ id: 'result' });
+        this.errorPanel = new Ext.Panel();
+        this.progressbar = new Ext.ProgressBar({width: '300'});
         var win = new Ext.Window({
             title: OpenLayers.i18n("Save"),
             width: 400,
@@ -50,22 +51,55 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
                 buttons: [{
                     text: OpenLayers.i18n('Save'),
                     handler : function(e) {
-                        win.getLayout().setActiveItem('result');
+                        win.getLayout().setActiveItem('progress');
                         this.save(Ext.getCmp('ask').getForm().getValues()['comment']);
                     },
                     scope: this
                 }, {
                     text: OpenLayers.i18n('Cancel'),
-                    bodyStyle: {
-                        backgroundColor: 'transparent',
-                        padding: '10px'
-                    },
                     handler : function(e) {
                         win.close();
                     },
                     scope: this
                 }]
-            }, this.resultPanel]
+            }, {
+                id: 'progress',
+                layout: 'vbox',
+                items: [{
+                        html: OpenLayers.i18n('Saves'),
+                        border: false,
+                        bodyStyle: {
+                            backgroundColor: 'transparent'
+                        }
+                    },
+                    this.progressbar],
+                style: {
+                    width: '100%',
+                    padding: '10px'
+                },
+                bodyStyle: {
+                    backgroundColor: 'transparent',
+                    padding: '10px'
+                }
+            }, {
+                id: 'error',
+                items: [this.errorPanel],
+                tbar: ['->', {
+                    text: OpenLayers.i18n('Close'),
+                    handler : function(e) {
+                        win.close();
+                    },
+                    scope: this
+                }],
+                style: {
+                    width: '100%',
+                    padding: '10px'
+                },
+                bodyStyle: {
+                    backgroundColor: 'transparent',
+                    padding: '10px'
+                }
+            }]
         });
         this.win = win;
         win.show();
@@ -77,15 +111,22 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
         var todoPos = -1; // -1 mean not started
         var todo = [];
         var changeset;
-        var resultPanel = this.resultPanel;
+        var errorPanel = this.errorPanel;
+        var progressbar = this.progressbar;
         var win = this.win;
         var mapPanel = this.target.mapPanel;
         var todoNext = function() {
             todoPos += 1;
-            resultPanel.update(OpenLayers.i18n('Saved: ') + todoPos + '/' + todo.length);
+            progressbar.updateProgress(todoPos / todo.length);
             if (todoPos < todo.length) {
                 todo[todoPos]();
             }
+        };
+        var error = function(message, response) {
+            errorPanel.update("<p>" + message + "</p>" +
+                    "<p>" + response.statusText + "<br>" + response.responseText + "</p>");
+            win.getLayout().setActiveItem('error');
+            mapPanel.update();
         }
         var finish = function() {
             OpenLayers.Request.issue({
@@ -94,7 +135,9 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
                     'action': '/api/0.6/changeset/' + changeset + '/close',
                     'method': 'PUT'
                 },
-                failure: function(r) { alert(OpenLayer.i18n("Unable to close the changeset.") + "\n" + r.statusText + "\n" + r.responseText); update(); }
+                failure: function(r) {
+                    error(OpenLayer.i18n("Unable to close the changeset."), r);
+                }
             });
             todoPos += 1;
             resultPanel.update(OpenLayers.i18n('Saved: ') + todoPos + '/' + todo.length);
@@ -111,7 +154,9 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
                     changeset = r.responseText.replace(/^\s+|\s+$/g, '');
                     todoNext();
                 },
-                failure: function(r) { alert(OpenLayer.i18n("Unable to open changeset.") + "\n" + r.statusText + "\n" + r.responseText); }
+                failure: function(r) {
+                    error(OpenLayer.i18n("Unable to open changeset."), r);
+                }
             });
         });
 
@@ -155,9 +200,7 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
                     todoNext();
                 },
                 failure: function(r) {
-                    alert(OpenLayer.i18n("Unable to create a node.") + "\n" +
-                            r.statusText + "\n" + r.responseText);
-                    finish();
+                    error(OpenLayer.i18n("Unable to create a node."), r);
                 }
             });
         };
@@ -198,8 +241,7 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
                     todoNext();
                 },
                 failure: function(r) {
-                    alert(OpenLayer.i18n("Unable to create a node.") + "\n" + r.statusText + "\n" + r.responseText);
-                    finish();
+                    error(OpenLayer.i18n("Unable to create a node."), r);
                 }
             });
         };
@@ -220,7 +262,7 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
                 });
             }
         });
-        this.target.mapPanel.deletedFeatures.forEach(function(f) {
+        mapPanel.deletedFeatures.forEach(function(f) {
             todo.push(function() {
                 OpenLayers.Request.issue({
                     url: 'http://stephane-brunner.ch/cgi-bin/osm.py',
@@ -229,14 +271,12 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
                         'action': '/api/0.6/' + f.type + '/' + f.osm_id
                     },
                     success: function(r) {
-                        this.target.mapPanel.featuresDeleted = this.target.mapPanel.featuresDeleted.splice(
-                                this.target.mapPanel.featuresDeleted.indexOf(f), 1);
+                        mapPanel.deletedFeatures = mapPanel.deletedFeatures.splice(
+                                mapPanel.deletedFeatures.indexOf(f), 1);
                         todoNext();
                     },
                     failure: function(r) {
-                        alert(OpenLayer.i18n("Unable to deleto object.") + "\n" +
-                                r.statusText + "\n" + r.responseText);
-                        finish();
+                        error(OpenLayer.i18n("Unable to deleto object."), r);
                     }
                 });
             });

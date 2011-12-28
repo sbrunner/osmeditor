@@ -36,9 +36,10 @@ elif args.list != None and args.has_key('new'):
     <tag k="comment" v="%s"/>
   </changeset>
 </osm>"""%args.getvalue('new')
-    changeset_id = api.put("/api/0.6/changeset/create", empty_changeset)
+    resp, changeset_id = api.put("/api/0.6/changeset/create", empty_changeset)
     session.data['changeset_id'] = changeset_id
 
+    print "Status: " + resp['status']
     print
     if args.has_key('cb'):
         print "function %s() {return '%s'} "%(args.getvalue('cb'), changeset_id)
@@ -47,8 +48,9 @@ elif args.list != None and args.has_key('new'):
 
 elif args.list != None and args.has_key('close'):
     # close changeset
-    result = api.put("/api/0.6/changeset/%s/close"%changeset_id)
+    resp, result = api.put("/api/0.6/changeset/%s/close"%changeset_id)
 
+    print "Status: " + resp['status']
     print
     if args.has_key('cb'):
         print "function %s() {return '%s'} "%(args.getvalue('cb'), result)
@@ -57,14 +59,15 @@ elif args.list != None and args.has_key('close'):
 
 elif args.list != None and args.has_key('action') and args.has_key('method') and args.has_key('data'):
     if args.getvalue('method') == "POST":
-        result = api.post(args.getvalue('action'),  args.getvalue('data'))
+        resp, result = api.post(args.getvalue('action'),  args.getvalue('data'))
     elif args.getvalue('method') == "PUT":
-        result = api.put(args.getvalue('action'),  args.getvalue('data'))
+        resp, result = api.put(args.getvalue('action'),  args.getvalue('data'))
     elif args.getvalue('method') == "DELETE":
-        result = api.delete(args.getvalue('action'),  args.getvalue('data'))
+        resp, result = api.delete(args.getvalue('action'),  args.getvalue('data'))
     else:
-        result = api.get(args.getvalue('action'),  args.getvalue('data'))
+        resp, result = api.get(args.getvalue('action'),  args.getvalue('data'))
 
+    print "Status: " + resp['status']
     print
     if args.has_key('cb'):
         print "function %s() {return '%s'} "%(args.getvalue('cb'), result)
@@ -73,10 +76,11 @@ elif args.list != None and args.has_key('action') and args.has_key('method') and
 
 elif args.list != None and args.has_key('action') and args.has_key('method'):
     if args.getvalue('method') == "DELETE":
-        result = api.delete(args.getvalue('action'), None)
+        resp, result = api.delete(args.getvalue('action'), None)
     else:
-        result = api.get(args.getvalue('action'), None)
+        resp, result = api.get(args.getvalue('action'), None)
 
+    print "Status: " + resp['status']
     print
     if args.has_key('cb'):
         print "function %s() {return '%s'} "%(args.getvalue('cb'), result)
