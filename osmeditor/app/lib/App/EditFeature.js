@@ -1,7 +1,7 @@
 
 /*
  * @requires plugins/Tool.js
- * @include OpenLayers/Control/SelectFeature.js
+ * @include App/SelectFeature.js
  * @include GeoExt/widgets/Action.js
  * @include GeoExt/widgets/Popup.js
  */
@@ -17,27 +17,7 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
      */
     addActions: function() {
         var mapPanel = this.target.mapPanel
-        var control = new OpenLayers.Control.SelectFeature(
-            mapPanel.map.getLayersByName("OSM")[0], {
-                hover: true, // to call overFeature / outFeature
-                overFeature: function(feature) {
-                    if (feature.geometry.CLASS_NAME == "OpenLayers.Geometry.Point") {
-                        OpenLayers.Element.addClass(mapPanel.map.viewPortDiv, "olOverFeaturePoint");
-                    }
-                    else if (feature.geometry.CLASS_NAME == "OpenLayers.Geometry.LineString") {
-                        OpenLayers.Element.addClass(mapPanel.map.viewPortDiv, "olOverFeatureLine");
-                    }
-                    else if (feature.geometry.CLASS_NAME == "OpenLayers.Geometry.Polygon") {
-                        OpenLayers.Element.addClass(mapPanel.map.viewPortDiv, "olOverFeaturePolygon");
-                    }
-                },
-                outFeature: function(feature) {
-                    OpenLayers.Element.removeClass(mapPanel.map.viewPortDiv, "olOverFeaturePoint");
-                    OpenLayers.Element.removeClass(mapPanel.map.viewPortDiv, "olOverFeatureLine");
-                    OpenLayers.Element.removeClass(mapPanel.map.viewPortDiv, "olOverFeaturePolygon");
-                }
-            }
-        );
+        var control = new App.SelectFeature(mapPanel.map.getLayersByName("OSM")[0], {});
         this.control = control;
         control.onSelect = function(f) {
             var Property = Ext.data.Record.create([

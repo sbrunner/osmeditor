@@ -2,7 +2,7 @@
 /*
  * @requires plugins/Tool.js
  * @include GeoExt/widgets/Action.js
- * @include OpenLayers/Control/SelectFeature.js
+ * @include App/SelectFeature.js
  */
 
 Ext.namespace("App");
@@ -16,9 +16,7 @@ App.DeleteFeature = Ext.extend(gxp.plugins.Tool, {
      */
     addActions: function() {
         var mapPanel = this.target.mapPanel;
-        this.mapPanel = mapPanel;
-        this.control = new OpenLayers.Control.SelectFeature(
-                mapPanel.map.getLayersByName("OSM")[0], {});
+        this.control = new App.SelectFeature(mapPanel.map.getLayersByName("OSM")[0], {});
 
         this.control.onSelect = function(feature) {
             mapPanel.deletedFeatures.push(feature);
