@@ -176,8 +176,8 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
         var sendNode = function(f, action, method) {
             var nodes = '';
             var tags = '';
-            for (p in f.properties) {
-                tags += tagTemplate.apply({'k': p, 'v': f.properties[p]});
+            for (p in f.attributes) {
+                tags += tagTemplate.apply({'k': p, 'v': f.attributes[p]});
             }
             var g = f.geometry.clone().transform(epsg900913, epsg4326);
             OpenLayers.Request.issue({
@@ -215,12 +215,16 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
         nodeLinkTemplate.compile();
         var sendWay = function(f, action, method) {
             var nodes = '';
-            f.geometry.getVertices().forEach(function(p) {
+            var components = f.geometry.components;
+            if (f.geometry.CLASS_NAME == "OpenLayers.Geometry.Polygon") {
+                components = components[0];
+            }
+            components.forEach(function(p) {
                 nodes += nodeLinkTemplate.apply({'ref': p.osm_id});
             });
             var tags = '';
-            for (p in f.properties) {
-                tags += tagTemplate.apply({'k': p, 'v': f.properties[p]});
+            for (p in f.attributes) {
+                tags += tagTemplate.apply({'k': p, 'v': f.attributes[p]});
             }
             OpenLayers.Request.issue({
                 url: 'http://stephane-brunner.ch/cgi-bin/osm.py',
