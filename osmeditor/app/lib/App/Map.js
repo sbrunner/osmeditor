@@ -233,8 +233,14 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
         if (!this.updating) {
             this.updating = true;
             try {
+                var features = [];
                 if (e && e.feature) {
-                    f = e.feature;
+                    features = [e.feature];
+                }
+                if (e && e.features) {
+                    features = e.features;
+                }
+                features.forEach(function(f) {
                     if (!f.osm_id) {
                         f.action = 'new';
                         f.osm_id = this.new_osm_id;
@@ -268,7 +274,7 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
                             }, this);
                         }
                     }
-                }
+                }, this);
 
                 this.osm.features.forEach(function(f) {
                     if (!f.defautStyle) {
