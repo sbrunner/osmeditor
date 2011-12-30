@@ -26,32 +26,32 @@ App.DragFeature = Ext.extend(gxp.plugins.Tool, {
                 else if (feature.geometry.CLASS_NAME == "OpenLayers.Geometry.Polygon") {
                     OpenLayers.Element.addClass(mapPanel.map.viewPortDiv, "olOverFeaturePolygon");
                 }
-                OpenLayers.Control.DragFeature.prototype.overFeature.apply(this, arguments)
+                OpenLayers.Control.DragFeature.prototype.overFeature.apply(this, arguments);
             },
             outFeature: function(feature) {
                 OpenLayers.Element.removeClass(mapPanel.map.viewPortDiv, "olOverFeaturePoint");
                 OpenLayers.Element.removeClass(mapPanel.map.viewPortDiv, "olOverFeatureLine");
                 OpenLayers.Element.removeClass(mapPanel.map.viewPortDiv, "olOverFeaturePolygon");
-                OpenLayers.Control.DragFeature.prototype.outFeature.apply(this, arguments)
+                OpenLayers.Control.DragFeature.prototype.outFeature.apply(this, arguments);
             },
             downFeature: function(pixel) {
                 OpenLayers.Element.addClass(mapPanel.map.viewPortDiv, "olDownFeature");
                 var res = this.map.getResolution();
-                this.firstX = res * pixel.x;
-                this.firstY = res * pixel.y;
+                this.moveX = 0;
+                this.moveY = 0;
                 OpenLayers.Control.DragFeature.prototype.downFeature.apply(this, arguments)
             },
             upFeature: function(pixel) {
                 OpenLayers.Element.removeClass(mapPanel.map.viewPortDiv, "olDownFeature");
-                OpenLayers.Control.DragFeature.prototype.upFeature.apply(this, arguments)
+                OpenLayers.Control.DragFeature.prototype.upFeature.apply(this, arguments);
             },
             onComplete: function(feature, pixel) {
-                var firstX = this.firstX;
-                var firstY = this.firstY;
+                var moveX = this.moveX;
+                var moveY = this.moveY;
                 var res = this.map.getResolution();
                 mapPanel.undoList.push({
                     undo: function(mapPanel) {
-                        feature.geometry.move(firstX - res * pixel.x, res * pixel.y - firstY);
+                        feature.geometry.move(-moveX, -moveY);
                         mapPanel.drawFeature(f);
                     }
                 });
@@ -61,6 +61,12 @@ App.DragFeature = Ext.extend(gxp.plugins.Tool, {
                     f.action = 'modified';
                 }
                 mapPanel.drawFeature(f);
+            },
+            moveFeature: function(pixel) {
+                var res = this.map.getResolution();
+                this.moveX += res * (pixel.x - this.lastPixel.x);
+                this.moveY += res * (this.lastPixel.y - pixel.y);
+                OpenLayers.Control.DragFeature.prototype.moveFeature.apply(this, arguments);
             }
         });
         this.map = mapPanel.map;
