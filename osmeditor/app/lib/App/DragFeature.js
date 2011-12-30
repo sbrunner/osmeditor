@@ -34,15 +34,27 @@ App.DragFeature = Ext.extend(gxp.plugins.Tool, {
                 OpenLayers.Element.removeClass(mapPanel.map.viewPortDiv, "olOverFeaturePolygon");
                 OpenLayers.Control.DragFeature.prototype.outFeature.apply(this, arguments)
             },
-            downFeature: function(feature) {
-                if (feature) {
-                    OpenLayers.Element.addClass(mapPanel.map.viewPortDiv, "olDownFeature");
-                }
+            downFeature: function(pixel) {
+                OpenLayers.Element.addClass(mapPanel.map.viewPortDiv, "olDownFeature");
+                var res = this.map.getResolution();
+                this.firstX = res * pixel.x;
+                this.firstY = res * pixel.y;
                 OpenLayers.Control.DragFeature.prototype.downFeature.apply(this, arguments)
             },
-            upFeature: function(feature) {
+            upFeature: function(pixel) {
                 OpenLayers.Element.removeClass(mapPanel.map.viewPortDiv, "olDownFeature");
                 OpenLayers.Control.DragFeature.prototype.upFeature.apply(this, arguments)
+            },
+            onComplete: function(feature, pixel) {
+                var firstX = this.firstX;
+                var firstY = this.firstY;
+                var res = this.map.getResolution();
+                mapPanel.undoList.push({
+                    undo: function(mapPanel) {
+                        feature.geometry.move(firstX - res * pixel.x, res * pixel.y - firstY);
+                        mapPanel.drawFeature(f);
+                    }
+                });
             },
             onDrag: function(f) {
                 if (f.type == 'node' && !f.action) {
