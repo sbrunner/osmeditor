@@ -85,7 +85,7 @@ App.Snapping = OpenLayers.Class(OpenLayers.Control.Snapping, {
                                     };
                                     eligible = true;
                                 }
-                            } else {
+                            } else if (feature.geometry.CLASS_NAME == "OpenLayers.Geometry.Point") {
                                 // look for nodes or vertices
                                 vertices = feature.geometry.getVertices(type === "node");
                                 found = false;

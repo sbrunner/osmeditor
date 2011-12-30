@@ -407,22 +407,13 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
                         this.snappedIndices[f.fid].push([oldIndex, dist]);
                     }
                     if (f.geometry.CLASS_NAME == "OpenLayers.Geometry.Point") {
-                        var dep = this.depandancies[p.osm_id];
-                        var components = p.parent.components;
-                        dep.forEach(function(d) {
-                            var f2 = this.osm.getFeatureBy('osm_id', d);
-                            if (f2.geometry.CLASS_NAME == "OpenLayers.Geometry.Polygon") {
-                                f2.geometry.components[0].components.forEach(function(d) {
-                                    components[i] = f.geometry;
-                                }, this);
+                        var index = 0;
+                        for (var leni = p.parent.components.length ; index < leni ; index++) {
+                            if (p.parent.components[index] == p) {
+                                p.parent.components[index] = f.geometry;
                             }
-                            else {
-                                f2.geometry.components.forEach(function(d) {
-                                    components[i] = f.geometry;
-                                }, this);
-                            }
-                            dep.components
-                        }, this);
+                        }
+
                         return false;
                     }
                     else if (f.geometry.CLASS_NAME == "OpenLayers.Geometry.Polygon") {
