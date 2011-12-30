@@ -20,6 +20,7 @@ App.Download = Ext.extend(gxp.plugins.Tool, {
             alert(OpenLayers.i18n("Unable to up download new area on modified features"));
         }
         else {
+            this.target.mapPanel.undoList = [];
             this.target.mapPanel.depandancies = {};
             this.target.mapPanel.bboxstrategie.update();
         }

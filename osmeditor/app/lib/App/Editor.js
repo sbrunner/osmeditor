@@ -29,6 +29,7 @@
  * @include App/EditFeature.js
  * @include App/DeleteFeature.js
  * @include App/MenuShortcut.js
+ * @include App/Undo.js
  */
 
 var app;
@@ -63,6 +64,8 @@ Ext.onReady(function() {
             ptype: "osm_pan",
             toggleGroup: "tool",
             pressed: true
+        }, {
+            ptype: 'osm_undo'
         }, {
             ptype: "cgxp_menushortcut",
             type: '-'

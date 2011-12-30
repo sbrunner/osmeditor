@@ -9,6 +9,7 @@
  * @include OSM/Style/Mapnik.js
  * @include OSM/Style/JOSM.js
  * @include App/Snapping.js
+ * @include App/CombinedUndo.js
  */
 
 Ext.namespace("App");
@@ -22,6 +23,8 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
     deletedFeatures: [],
 
     new_osm_id: -1,
+
+    undoList: [],
 
     /** private */
     // true when we redraw depandancies
@@ -106,6 +109,14 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
         osm.staticStyleMap = OSM.Style.Mapnik.getStyleMap(osm.staticStyleMap);
 
         osm.events.register('sketchcomplete', this, function(e) {
+            var osm = this.map.getLayersByName("OSM")[0];
+            var undo = new App.CombinedUndo();
+            undo.list.push({
+                undo: function(mapPanel) {
+                    osm.removeFeatures([e.feature]);
+                }
+            });
+            this.undoList.push(undo);
             this.update(e);
         });
         osm.events.register('sketchmodified', this, function(e) {
@@ -340,7 +351,19 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
                 feat.type = "node";
                 feat.fid = "node." + feat.osm_id;
                 feat.action = 'new';
-                this.map.getLayersByName("OSM")[0].addFeatures([feat]);
+
+                var osm = this.map.getLayersByName("OSM")[0];
+                osm.addFeatures([feat]);
+
+                var len = this.undoList.length;
+                if (len > 0) {
+                    var undo = this.undoList[len-1];
+                    undo.list.push({
+                        undo: function(mapPanel) {
+                            osm.removeFeatures([feat]);
+                        }
+                    });
+                }
             }
         }
     },
@@ -392,9 +415,29 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
                     }
                     else if (f.geometry.CLASS_NAME == "OpenLayers.Geometry.Polygon") {
                         f.geometry.components[0].addComponent(p, index + 1);
+
+                        var len = this.undoList.length;
+                        if (len > 0) {
+                            var undo = this.undoList[len-1];
+                            undo.list.push({
+                                undo: function(mapPanel) {
+                                    f.geometry.components[0].removeComponent(p);
+                                }
+                            });
+                        }
                     }
                     else {
                         f.geometry.addComponent(p, index + 1);
+
+                        var len = this.undoList.length;
+                        if (len > 0) {
+                            var undo = this.undoList[len-1];
+                            undo.list.push({
+                                undo: function(mapPanel) {
+                                    f.geometry.removeComponent(p);
+                                }
+                            });
+                        }
                     }
                 }
             }
