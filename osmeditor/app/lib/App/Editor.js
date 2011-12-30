@@ -65,7 +65,8 @@ Ext.onReady(function() {
             toggleGroup: "tool",
             pressed: true
         }, {
-            ptype: 'osm_undo'
+            ptype: 'osm_undo',
+            toggleGroup: "tool"
         }, {
             ptype: "cgxp_menushortcut",
             type: '-'

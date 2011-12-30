@@ -22,6 +22,9 @@ App.Undo = Ext.extend(gxp.plugins.Tool, {
         if (this.mapPanel.undoList.length > 0) {
             this.mapPanel.undoList.pop().undo(this.mapPanel);
         }
+        if (this.pressed) {
+            this.toggle(false, true);
+        }
     }
 });
 
