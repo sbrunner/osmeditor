@@ -17,13 +17,19 @@ Ext.namespace("App");
 App.Map = Ext.extend(GeoExt.MapPanel, {
     xtype: "osm_map",
 
-    /* the used display projection */
+    /** the used display projection */
     displayProjection: null,
 
+    /** the deleted features */
     deletedFeatures: [],
 
+    /** the osm layer */
+    osm: null,
+
+    /** the osm id for the next created features */
     new_osm_id: -1,
 
+    /** the list for the undo actions */
     undoList: [],
 
     /** private */
@@ -32,9 +38,11 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
 
     /** private */
     snappedList: {},
+
     /** private */
     snappedIndices: {},
 
+    /** the calculated depandanceies */
     depandancies: {},
 
     /** private: method[initComponent]
@@ -70,7 +78,7 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
             projection: epsg900913
         });
 
-        osm = new OpenLayers.Layer.Vector("OSM", {
+        this.osm = new OpenLayers.Layer.Vector("OSM", {
             projection: epsg900913,
             strategies: [this.bboxstrategie],
             protocol: new OpenLayers.Protocol.OSMAPI({
@@ -101,25 +109,24 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
             }
         });
 
-        osm.staticStyleMap = new OpenLayers.StyleMap();
-        this.addStyle('yellow', osm.staticStyleMap.styles["default"]);
-        this.addStyle('blue', osm.staticStyleMap.styles["select"]);
-        this.addStyle('green', osm.staticStyleMap.styles["temporary"]);
-        osm.staticStyleMap = OSM.Style.JOSM.getStyleMap(osm.staticStyleMap);
-        osm.staticStyleMap = OSM.Style.Mapnik.getStyleMap(osm.staticStyleMap);
+        this.osm.staticStyleMap = new OpenLayers.StyleMap();
+        this.addStyle('yellow', this.osm.staticStyleMap.styles["default"]);
+        this.addStyle('blue', this.osm.staticStyleMap.styles["select"]);
+        this.addStyle('green', this.osm.staticStyleMap.styles["temporary"]);
+        this.osm.staticStyleMap = OSM.Style.JOSM.getStyleMap(this.osm.staticStyleMap);
+        this.osm.staticStyleMap = OSM.Style.Mapnik.getStyleMap(this.osm.staticStyleMap);
 
-        osm.events.register('sketchcomplete', this, function(e) {
-            var osm = this.map.getLayersByName("OSM")[0];
+        this.osm.events.register('sketchcomplete', this, function(e) {
             var undo = new App.CombinedUndo();
             undo.list.push({
                 undo: function(mapPanel) {
-                    osm.removeFeatures([e.feature]);
+                    mapPanel.osm.removeFeatures([e.feature]);
                 }
             });
             this.undoList.push(undo);
             this.update(e);
         });
-        osm.events.register('sketchmodified', this, function(e) {
+        this.osm.events.register('sketchmodified', this, function(e) {
             if (e.feature.geometry.CLASS_NAME != "OpenLayers.Geometry.Point") {
                 var snapped = this.map.getControlsByClass("App.Snapping")[0].snapped;
                 e.feature.geometry.getVertices().forEach(function(p) {
@@ -129,21 +136,21 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
                 }, this);
             }
         });
-        osm.events.register('featuresadded', this, function(e) {
+        this.osm.events.register('featuresadded', this, function(e) {
             this.update(e);
         });
-        osm.events.register('featuremodified', this, function(e) {
+        this.osm.events.register('featuremodified', this, function(e) {
             if (!e.feature.action) {
                 e.feature.action = 'modified';
             }
             this.update(e);
         });
 
-        this.map.addLayer(osm);
+        this.map.addLayer(this.osm);
 
         this.map.addControl(new App.Snapping({
-            layer: osm,
-            targets: [osm],
+            layer: this.osm,
+            targets: [this.osm],
             autoActivate: true
         }));
     },
@@ -263,14 +270,14 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
                     }
                 }
 
-                osm.features.forEach(function(f) {
+                this.osm.features.forEach(function(f) {
                     if (!f.defautStyle) {
-                        f.selectStyle = osm.staticStyleMap.createSymbolizer(f, "select");
-                        f.defaultStyle = osm.staticStyleMap.createSymbolizer(f);
+                        f.selectStyle = this.osm.staticStyleMap.createSymbolizer(f, "select");
+                        f.defaultStyle = this.osm.staticStyleMap.createSymbolizer(f);
                     }
                 }, this);
 
-                var features = [].concat(osm.features); // clone
+                var features = [].concat(this.osm.features); // clone
                 var dirty = false;
                 features.sort(function (f1, f2) {
                     var t1;
@@ -298,12 +305,12 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
                     return result;
                 });
                 if (dirty) {
-                    osm.removeAllFeatures();
-                    osm.addFeatures(features);
+                    this.osm.removeAllFeatures();
+                    this.osm.addFeatures(features);
                 }
 
                 this.depandancies = {};
-                osm.features.forEach(function(f) {
+                this.osm.features.forEach(function(f) {
                     if (f.type != 'node') {
                         f.geometry.getVertices().forEach(function(p) {
                             this.addDep(f.osm_id, p.osm_id);
@@ -352,15 +359,14 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
                 feat.fid = "node." + feat.osm_id;
                 feat.action = 'new';
 
-                var osm = this.map.getLayersByName("OSM")[0];
-                osm.addFeatures([feat]);
+                this.osm.addFeatures([feat]);
 
                 var len = this.undoList.length;
                 if (len > 0) {
                     var undo = this.undoList[len-1];
                     undo.list.push({
                         undo: function(mapPanel) {
-                            osm.removeFeatures([feat]);
+                            mapPanel.osm.removeFeatures([feat]);
                         }
                     });
                 }
@@ -398,7 +404,7 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
                         var dep = this.depandancies[p.osm_id];
                         var components = p.parent.components;
                         dep.forEach(function(d) {
-                            var f2 = osm.getFeatureBy('osm_id', d);
+                            var f2 = this.osm.getFeatureBy('osm_id', d);
                             if (f2.geometry.CLASS_NAME == "OpenLayers.Geometry.Polygon") {
                                 f2.geometry.components[0].components.forEach(function(d) {
                                     components[i] = f.geometry;
@@ -443,6 +449,30 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
             }
         }
         return true;
+    },
+
+    drawFeature: function(f) {
+        this.osm.drawFeature(f);
+        var dep = this.depandancies[f.osm_id];
+        if (dep) {
+            for (var i = 0, leni = dep.length; i < leni; i++) {
+                var id = dep[i];
+                var fd = this.osm.getFeatureBy('osm_id', id);
+                this.osm.drawFeature(fd);
+                if (fd.type == 'node') {
+                    if (!fd.action) {
+                        fd.action = 'modified';
+                    }
+                    var dep2 = this.depandancies[id];
+                    if (dep2) {
+                        for (var j = 0, lenj = dep2.length; j < lenj; j++) {
+                            var fd2 = this.osm.getFeatureBy('osm_id', dep2[j]);
+                            this.osm.drawFeature(fd2);
+                        }
+                    }
+                }
+            }
+        }
     }
 });
 

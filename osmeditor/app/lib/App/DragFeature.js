@@ -15,8 +15,7 @@ App.DragFeature = Ext.extend(gxp.plugins.Tool, {
      */
     addActions: function() {
         var mapPanel = this.target.mapPanel;
-        this.control = new OpenLayers.Control.DragFeature(
-                mapPanel.map.getLayersByName("OSM")[0], {
+        this.control = new OpenLayers.Control.DragFeature(mapPanel.osm, {
             overFeature: function(feature) {
                 if (feature.geometry.CLASS_NAME == "OpenLayers.Geometry.Point") {
                     OpenLayers.Element.addClass(mapPanel.map.viewPortDiv, "olOverFeaturePoint");
@@ -49,26 +48,7 @@ App.DragFeature = Ext.extend(gxp.plugins.Tool, {
                 if (f.type == 'node' && !f.action) {
                     f.action = 'modified';
                 }
-                var dep = mapPanel.depandancies[f.osm_id];
-                if (dep) {
-                    for (var i = 0, leni = dep.length; i < leni; i++) {
-                        var id = dep[i];
-                        var fd = osm.getFeatureBy('osm_id', id);
-                        osm.drawFeature(fd);
-                        if (fd.type == 'node') {
-                            if (!fd.action) {
-                                fd.action = 'modified';
-                            }
-                            var dep2 = mapPanel.depandancies[id];
-                            if (dep2) {
-                                for (var j = 0, lenj = dep2.length; j < lenj; j++) {
-                                    var fd2 = osm.getFeatureBy('osm_id', dep2[j]);
-                                    mapPanel.map.getLayersByName("OSM")[0].drawFeature(fd2);
-                                }
-                            }
-                        }
-                    }
-                }
+                mapPanel.drawFeature(f);
             }
         });
         this.map = mapPanel.map;
