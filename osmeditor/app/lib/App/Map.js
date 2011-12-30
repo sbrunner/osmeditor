@@ -373,7 +373,7 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
         var snapped = this.snappedList[p.x + 21000000 + p.y * 42000000];
         if (snapped) {
             if (snapped && snapped.x == p.x && snapped.y == p.y) {
-                for (var i = 0, len = snapped.toFeatures.length ; i < len ; i++) {
+                for (var i = 0, leni = snapped.toFeatures.length ; i < leni ; i++) {
                     var f = snapped.toFeatures[i];
                     var index = snapped.toIndices[i];
                     var oldIndex = index;
