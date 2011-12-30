@@ -3,9 +3,9 @@ Ext.namespace("App");
 
 App.CombinedUndo = Ext.extend(function() {this.list = []}, {
     list: null,
-    undo: function() {
+    undo: function(mapPanel) {
         this.list.reverse().forEach(function(elem) {
-            elem.undo();
+            elem.undo(mapPanel);
         }, this);
     }
 });
