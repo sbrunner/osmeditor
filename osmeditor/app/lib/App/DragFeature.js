@@ -52,7 +52,7 @@ App.DragFeature = Ext.extend(gxp.plugins.Tool, {
                 mapPanel.undoList.push({
                     undo: function(mapPanel) {
                         feature.geometry.move(-moveX, -moveY);
-                        mapPanel.drawFeature(f);
+                        mapPanel.drawFeature(feature);
                     }
                 });
             },

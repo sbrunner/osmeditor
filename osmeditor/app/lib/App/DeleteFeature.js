@@ -3,6 +3,7 @@
  * @requires plugins/Tool.js
  * @include GeoExt/widgets/Action.js
  * @include App/SelectFeature.js
+ * @include App/CombinedUndo.js
  */
 
 Ext.namespace("App");
@@ -20,7 +21,9 @@ App.DeleteFeature = Ext.extend(gxp.plugins.Tool, {
 
         this.control.onSelect = function(feature) {
             mapPanel.deletedFeatures.push(feature);
-            this.layer.removeFeatures(feature);
+            var deletedFeatures = [feature];
+
+            var undo = new App.CombinedUndo();
 
             var dep = mapPanel.depandancies[feature.osm_id];
             if (dep) {
@@ -32,15 +35,25 @@ App.DeleteFeature = Ext.extend(gxp.plugins.Tool, {
                 };
                 if (feature.geometry instanceof OpenLayers.Geometry.Point) {
                     dep.forEach(function (osmid) {
-                        var f = this.layer.getFeatureBy('osm_id', osmid);
-                        if (f.geometry instanceof OpenLayers.Geometry.LinearRing) {
-                            f.geometry.removeComponent(feature.geometry);
-                            f.layer.redraw(f);
+                        var f = mapPanel.getFeature(osmid);
+                        var geometry = f.geometry;
+                        if (f.geometry.CLASS_NAME == "OpenLayers.Geometry.Polygon") {
+                            geometry = geometry.components[0];
                         }
-                        else if (f.geometry instanceof OpenLayers.Geometry.Polygon) {
-                            f.geometry.components[0].removeComponent(feature.geometry);
-                            f.layer.redraw(f);
+                        var index = 0;
+                        for (var leni = geometry.components.length ; index < leni ; index++) {
+                            if (geometry.components[index] == feature.geometry) {
+                                break;
+                            }
                         }
+                        geometry.removeComponent(feature.geometry);
+                        mapPanel.drawFeature(feature);
+                        undo.list.push({
+                            undo: function(mapPanel) {
+                                geometry.addComponent(feature.geometry, index)
+                                mapPanel.drawFeature(f);
+                            }
+                        });
                     }, this);
                 }
                 else {
@@ -50,12 +63,26 @@ App.DeleteFeature = Ext.extend(gxp.plugins.Tool, {
                             var f = this.layer.getFeatureBy('osm_id', osmid);
                             if (!hasAttributes(f)) {
                                 mapPanel.deletedFeatures.push(f);
-                                this.layer.removeFeatures(f);
+                                deletedFeatures.push(f);
                             }
                         }
                     }, this);
                 }
             }
+
+
+            mapPanel.osm.removeFeatures(deletedFeatures);
+            undo.list.push({
+                undo: function(mapPanel) {
+                    deletedFeatures.forEach(function (feature) {
+                        mapPanel.deletedFeatures = mapPanel.deletedFeatures.splice(
+                                mapPanel.deletedFeatures.indexOf(feature), 1);
+                        mapPanel.drawFeature(feature);
+                    });
+                    mapPanel.osm.addFeatures(deletedFeatures);
+                }
+            });
+            mapPanel.undoList.push(undo);
         }
 
         this.map = mapPanel.map;
