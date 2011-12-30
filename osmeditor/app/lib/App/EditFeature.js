@@ -13,20 +13,35 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
 
     text: OpenLayers.i18n("Edit"),
 
+    popup: null,
+
+    oldProperties: null,
+
     /** api: method[addActions]
      */
     addActions: function() {
-        var mapPanel = this.target.mapPanel
+        var mapPanel = this.target.mapPanel;
         var control = new App.SelectFeature(mapPanel.map.getLayersByName("OSM")[0], {});
+        var tool = this;
         this.control = control;
+        control.onUnselect = function(f) {
+            if (tool.popup) {
+                tool.popup.close();
+            }
+        };
         control.onSelect = function(f) {
+            if (tool.popup) {
+                tool.popup.close();
+            }
             var Property = Ext.data.Record.create([
                 {name: 'property'},
                 {name: 'value'}
             ]);
             var data = [];
+            tool.oldProperties = {};
             for (var property in f.attributes) {
                 data.push([property, f.attributes[property]]);
+                tool.oldProperties[property] = f.attributes[property];
             }
             var store = new Ext.data.ArrayStore({
                 autoDestroy: true,
@@ -67,7 +82,7 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
                 }
                 f.selectStyle = f.layer.staticStyleMap.createSymbolizer(f, "select");
                 f.defaultStyle = f.layer.staticStyleMap.createSymbolizer(f);
-            });
+            }, tool);
             grid.getBottomToolbar().add({
                 text: OpenLayers.i18n("Delete"),
                 handler: function() {
@@ -89,7 +104,7 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
             if (f.attributes.name) {
                 postFix = " - " + f.attributes.name;
             }
-            var popup = new GeoExt.Popup({
+            tool.popup = new GeoExt.Popup({
                 title: OpenLayers.i18n("Properties") + postFix,
                 location: f.geometry.getCentroid(),
                 width: 300,
@@ -98,17 +113,48 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
                 map: mapPanel.map,
                 items: [grid]
             });
-            popup.on('close', function() {
+            tool.popup.on('close', function() {
                 grid.stopEditing();
+
+                var properties = this.oldProperties;
+                var feature = f;
+
+                if (!this.equals(properties, feature.attributes)) {
+                    mapPanel.undoList.push({
+                        undo: function(mapPanel) {
+                            feature.attributes = properties;
+                            feature.selectStyle = feature.layer.staticStyleMap.createSymbolizer(f, "select");
+                            feature.defaultStyle = feature.layer.staticStyleMap.createSymbolizer(f);
+                            mapPanel.osm.drawFeature(feature);
+                        }
+                    });
+                }
+                this.popup.destroy();
+                this.popup = null;
+
                 control.unselectAll();
-            });
-            popup.show();
+            }, tool);
+            tool.popup.show();
         };
 
         this.map = mapPanel.map;
 
         var actions = [new GeoExt.Action(this)];
         return App.EditFeature.superclass.addActions.apply(this, [actions]);
+    },
+
+    equals: function(attributes1, attributes2) {
+        for (var a in attributes1) {
+            if (attributes1[a] !== attributes2[a]) {
+                return false;
+            }
+        }
+        for (var a in attributes2) {
+            if (attributes1[a] !== attributes2[a]) {
+                return false;
+            }
+        }
+        return true;
     }
 });
 
