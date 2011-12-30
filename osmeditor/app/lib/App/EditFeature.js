@@ -120,6 +120,7 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
                 var feature = f;
 
                 if (!this.equals(properties, feature.attributes)) {
+                    feature.action = 'modified';
                     mapPanel.undoList.push({
                         undo: function(mapPanel) {
                             feature.attributes = properties;

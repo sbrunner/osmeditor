@@ -262,10 +262,8 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
                                 this.addFeatureToPoint(p)
                             }, this);
                         }
-                    } else {
-                        if (f.action != 'new') {
-                            f.action = 'modified';
-                        }
+                    }
+                    else {
                         if (f.geometry.CLASS_NAME != "OpenLayers.Geometry.Point") {
                             f.geometry.getVertices().forEach(function(p) {
                                 if (!p.osm_id) {

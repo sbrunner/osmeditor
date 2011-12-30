@@ -12,8 +12,14 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
     text: OpenLayers.i18n("Save"),
 
     handler: function() {
-        this.errorPanel = new Ext.Panel();
-        this.progressbar = new Ext.ProgressBar({width: '300'});
+        this.errorPanel = new Ext.Panel({
+            border: false,
+            bodyStyle: {
+                backgroundColor: 'transparent',
+                padding: '10px'
+            }
+        });
+        this.progressbar = new Ext.ProgressBar({ width: 300, layout: 'fit' });
         var win = new Ext.Window({
             title: OpenLayers.i18n("Save"),
             width: 400,
@@ -41,7 +47,7 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
                     listeners: {
                         specialkey: function(field, e) {
                             if (e.getKey() == e.ENTER) {
-                                win.getLayout().setActiveItem('result');
+                                win.getLayout().setActiveItem('progress');
                                 this.save(Ext.getCmp('ask').getForm().getValues()['comment']);
                             }
                         },
@@ -84,7 +90,7 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
             }, {
                 id: 'error',
                 items: [this.errorPanel],
-                tbar: ['->', {
+                bbar: ['->', {
                     text: OpenLayers.i18n('Close'),
                     handler : function(e) {
                         win.close();
@@ -105,189 +111,194 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
         win.show();
     },
 
-    save: function(comment) {
-        var newNodes = [];
-        var newWays = [];
-        var todoPos = -1; // -1 mean not started
-        var todo = [];
-        var changeset;
-        var errorPanel = this.errorPanel;
-        var progressbar = this.progressbar;
-        var win = this.win;
-        var mapPanel = this.target.mapPanel;
-        var todoNext = function() {
-            todoPos += 1;
-            progressbar.updateProgress(todoPos / todo.length);
-            if (todoPos < todo.length) {
-                todo[todoPos]();
-            }
-        };
-        var error = function(message, response) {
-            errorPanel.update("<p>" + message + "</p>" +
-                    "<p>" + response.statusText + "<br>" + response.responseText + "</p>");
-            win.getLayout().setActiveItem('error');
-            mapPanel.update();
+    createTemplates: function() {
+        if (!this.tagTemplate) {
+            this.tagTemplate = new Ext.Template('<tag k="{k}" v="{v}" />');
+            this.tagTemplate.compile();
+            this.nodeTemplate = new Ext.Template('<osm><node lon="{lon}" lat="{lat}" changeset="{changeset}" id="{id}" version="{version}">{tags}</node></osm>');
+            this.nodeTemplate.compile();
+            this.wayTemplate = new Ext.Template('<osm><way changeset="{changeset}" id="{id}" version="{version}">{nodes}{tags}</way></osm>');
+            this.wayTemplate.compile();
+            this.nodeLinkTemplate = new Ext.Template('<nd ref="{ref}" />');
+            this.nodeLinkTemplate.compile();
         }
+    },
+
+    getNode: function(node) {
+        this.createTemplates();
+        var tags = '';
+        for (p in node.attributes) {
+            tags += this.tagTemplate.apply({'k': p, 'v': node.attributes[p]});
+        }
+        var g = node.geometry.clone().transform(epsg900913, epsg4326);
+        return this.nodeTemplate.apply({
+            'lon': g.x,
+            'lat': g.y,
+            'changeset': this.changeset,
+            'tags': tags,
+            'id': node.osm_id >= 0 ? node.osm_id : '',
+            'version': node.osm_id >= 0 ? node.osm_version : ''
+        })
+    },
+
+    getWay: function(way) {
+        this.createTemplates();
+        var geometry = way.geometry;
+        if (geometry.CLASS_NAME == "OpenLayers.Geometry.Polygon") {
+            geometry = geometry.components[0];
+        }
+        var nodes = '';
+        geometry.components.forEach(function(p) {
+            nodes += this.nodeLinkTemplate.apply({'ref': p.osm_id});
+        }, this);
+        var tags = '';
+        for (p in way.attributes) {
+            tags += this.tagTemplate.apply({'k': p, 'v': way.attributes[p]});
+        }
+        return this.wayTemplate.apply({
+            'changeset': this.changeset,
+            'nodes': nodes,
+            'tags': tags,
+            'id': way.osm_id >= 0 ? way.osm_id : '',
+            'version': way.osm_id >= 0 ? way.osm_version : ''
+        })
+    },
+
+    getFeature: function(feature) {
+        return feature.type == 'node' ? this.getNode(feature) : this.getWay(feature);
+    },
+
+    addAction: function(feature, action, method, errorMessage, success) {
+        var save = this;
+        this.todo.push(function() {
+            OpenLayers.Request.issue({
+                url: 'http://stephane-brunner.ch/cgi-bin/osm.py',
+                params: {
+                    'method': method,
+                    'action': action,
+                    'data': save.getFeature(feature)
+                },
+                success: success,
+                failure: function(r) {
+                    save.error(errorMessage, r);
+                }
+            });
+        });
+    },
+
+    todoNext: function() {
+        this.todoPos += 1;
+        this.progressbar.updateProgress(this.todoPos / this.todo.length);
+        if (this.todoPos < this.todo.length) {
+            this.todo[this.todoPos]();
+        }
+    },
+
+    error: function(message, response) {
+        this.errorPanel.update("<p>" + message + "</p>" +
+                "<p>" + response.statusText + "<br>" + response.responseText + "</p>");
+        this.win.getLayout().setActiveItem('error');
+        this.target.mapPanel.update();
+    },
+
+    save: function(comment) {
+        var save = this;
+
+        this.todoPos = -1; // -1 mean not started
+        this.todo = [];
+        var mapPanel = this.target.mapPanel;
+
         var finish = function() {
             OpenLayers.Request.issue({
                 url: 'http://stephane-brunner.ch/cgi-bin/osm.py',
                 params: {
-                    'action': '/api/0.6/changeset/' + changeset + '/close',
+                    'action': '/api/0.6/changeset/' + save.changeset + '/close',
                     'method': 'PUT'
                 },
                 failure: function(r) {
-                    error(OpenLayer.i18n("Unable to close the changeset."), r);
+                    save.error(OpenLayers.i18n("Unable to close the changeset."), r);
                 }
             });
-            todoPos += 1;
-            resultPanel.update(OpenLayers.i18n('Saved: ') + todoPos + '/' + todo.length);
+            save.todoPos += 1;
             mapPanel.update();
-            win.close();
+            save.win.close();
         };
-        todo.push(function() {
+        save.todo.push(function() {
             OpenLayers.Request.GET({
                 url: "http://stephane-brunner.ch/cgi-bin/osm.py",
                 params: {
                     'new': comment
                 },
                 success: function(r) {
-                    changeset = r.responseText.replace(/^\s+|\s+$/g, '');
-                    todoNext();
+                    save.changeset = r.responseText.replace(/^\s+|\s+$/g, '');
+                    save.todoNext();
                 },
                 failure: function(r) {
-                    error(OpenLayer.i18n("Unable to open changeset."), r);
+                    save.error(OpenLayers.i18n("Unable to open changeset."), r);
                 }
             });
         });
 
-        this.target.mapPanel.map.getLayersByName("OSM")[0].getFeaturesBy('action', 'new').forEach(function(f) {
+        var nodes = [];
+        var ways = [];
+        mapPanel.osm.getFeaturesBy('action', 'new').forEach(function(f) {
             if (f.type == 'node') {
-                newNodes.push(f);
+                nodes.push(f);
             }
             else {
-                newWays.push(f);
+                ways.push(f);
             }
-        });
+        }, this);
 
-        var tagTemplate = new Ext.Template('<tag k="{k}" v="{v}" />');
-        tagTemplate.compile();
-        var nodeTemplate = new Ext.Template('<osm><node lon="{lon}" lat="{lat}" changeset="{changeset}">{tags}</node></osm>');
-        nodeTemplate.compile();
-        var sendNode = function(f, action, method) {
-            var nodes = '';
-            var tags = '';
-            for (p in f.attributes) {
-                tags += tagTemplate.apply({'k': p, 'v': f.attributes[p]});
-            }
-            var g = f.geometry.clone().transform(epsg900913, epsg4326);
-            OpenLayers.Request.issue({
-                url: 'http://stephane-brunner.ch/cgi-bin/osm.py',
-                params: {
-                    'method': method,
-                    'action': action,
-                    'data': nodeTemplate.apply({
-                        'lon': g.x,
-                        'lat': g.y,
-                        'changeset': changeset,
-                        'tags': tags
-                    })
-                },
-                success: function(r) {
-                    f.osm_id = r.responseText.replace(/^\s+|\s+$/g, '');
-                    f.geometry.osm_id = f.osm_id;
-                    f.fid = f.type + "." + f.osm_id;
-                    f.action = 'commited';
-                    todoNext();
-                },
-                failure: function(r) {
-                    error(OpenLayer.i18n("Unable to create a node."), r);
-                }
-            });
-        };
-        newNodes.forEach(function(f) {
-            todo.push(function() {
-                sendNode(f, '/api/0.6/node/create', 'PUT')
-            });
-        });
-        var wayTemplate = new Ext.Template('<osm><way changeset="{changeset}">{nodes}{tags}</way></osm>');
-        wayTemplate.compile();
-        var nodeLinkTemplate = new Ext.Template('<nd ref="{ref}" />');
-        nodeLinkTemplate.compile();
-        var sendWay = function(f, action, method) {
-            var nodes = '';
-            var components = f.geometry.components;
-            if (f.geometry.CLASS_NAME == "OpenLayers.Geometry.Polygon") {
-                components = components[0];
-            }
-            components.forEach(function(p) {
-                nodes += nodeLinkTemplate.apply({'ref': p.osm_id});
-            });
-            var tags = '';
-            for (p in f.attributes) {
-                tags += tagTemplate.apply({'k': p, 'v': f.attributes[p]});
-            }
-            OpenLayers.Request.issue({
-                url: 'http://stephane-brunner.ch/cgi-bin/osm.py',
-                params: {
-                    'method': method,
-                    'action': action,
-                    'data': wayTemplate.apply({
-                        'changeset': changeset,
-                        'nodes': nodes,
-                        'tags': tags
-                    })
-                },
-                success: function(r) {
-                    f.osm_id = r.responseText.replace(/^\s+|\s+$/g, '');
-                    f.geometry.osm_id = f.osm_id;
-                    f.fid = f.type + "." + f.osm_id;
-                    f.action = 'commited';
-                    todoNext();
-                },
-                failure: function(r) {
-                    error(OpenLayer.i18n("Unable to create a node."), r);
-                }
-            });
-        };
-        newWays.forEach(function(f) {
-            todo.push(function() {
-                sendWay(f, '/api/0.6/way/create', 'PUT');
-            });
-        });
-        this.target.mapPanel.map.getLayersByName("OSM")[0].getFeaturesBy('action', 'modified').forEach(function(f) {
-            if (f.type == 'node') {
-                todo.push(function() {
-                    sendNode(f, '/api/0.6/node/' + f.osm_id, 'PUT');
-                });
-            }
-            else {
-                todo.push(function() {
-                    sendWay(f, '/api/0.6/way/' + f.osm_id, 'PUT');
-                });
-            }
-        });
+        nodes.forEach(function(f) {
+            this.addAction(f, '/api/0.6/' + f.type + '/create', 'PUT',
+                    OpenLayers.i18n("Unable to create a " + f.type + "."),
+                    function(r) {
+                        f.osm_id = r.responseText.replace(/^\s+|\s+$/g, '');
+                        f.geometry.osm_id = f.osm_id;
+                        f.fid = f.type + "." + f.osm_id;
+                        f.action = 'commited';
+                        f.osm_version = 1;
+                        save.todoNext();
+                    });
+        }, this);
+
+        ways.forEach(function(f) {
+            this.addAction(f, '/api/0.6/' + f.type + '/create', 'PUT',
+                    OpenLayers.i18n("Unable to create a " + f.type + "."),
+                    function(r) {
+                        f.osm_id = r.responseText.replace(/^\s+|\s+$/g, '');
+                        f.geometry.osm_id = f.osm_id;
+                        f.fid = f.type + "." + f.osm_id;
+                        f.action = 'commited';
+                        f.osm_version = 1;
+                        save.todoNext();
+                    });
+        }, this);
+
+        mapPanel.osm.getFeaturesBy('action', 'modified').forEach(function(f) {
+            this.addAction(f, '/api/0.6/' + f.type + '/' + f.osm_id, 'PUT',
+                    OpenLayers.i18n("Unable to send a " + f.type + "."),
+                    function(r) {
+                        f.action = 'commited';
+                        f.osm_version += 1;
+                        save.todoNext();
+                    });
+        }, this);
+
         mapPanel.deletedFeatures.forEach(function(f) {
-            todo.push(function() {
-                OpenLayers.Request.issue({
-                    url: 'http://stephane-brunner.ch/cgi-bin/osm.py',
-                    params: {
-                        'method': 'DELETE',
-                        'action': '/api/0.6/' + f.type + '/' + f.osm_id
-                    },
-                    success: function(r) {
+            this.addAction(f, '/api/0.6/' + f.type + '/' + f.osm_id, 'DELETE',
+                    OpenLayers.i18n("Unable to delete a " + f.type + "."),
+                    function(r) {
                         mapPanel.deletedFeatures = mapPanel.deletedFeatures.splice(
                                 mapPanel.deletedFeatures.indexOf(f), 1);
-                        todoNext();
-                    },
-                    failure: function(r) {
-                        error(OpenLayer.i18n("Unable to deleto object."), r);
-                    }
-                });
-            });
+                        save.todoNext();
+                    });
         }, this);
-        todo.push(finish);
 
-        todoNext();
+        save.todo.push(finish);
+
+        save.todoNext();
     },
 
     /** api: method[addActions]
