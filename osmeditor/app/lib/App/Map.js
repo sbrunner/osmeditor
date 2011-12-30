@@ -451,28 +451,47 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
         return true;
     },
 
+    getFeature: function(f) {
+        if (f instanceof OpenLayers.Feature) {
+            return f;
+        }
+        else {
+            return this.osm.getFeatureBy('osm_id', f);
+        }
+    },
+
     drawFeature: function(f) {
+        f = this.getFeature(f);
         this.osm.drawFeature(f);
         var dep = this.depandancies[f.osm_id];
         if (dep) {
             for (var i = 0, leni = dep.length; i < leni; i++) {
                 var id = dep[i];
                 var fd = this.osm.getFeatureBy('osm_id', id);
-                this.osm.drawFeature(fd);
-                if (fd.type == 'node') {
-                    if (!fd.action) {
-                        fd.action = 'modified';
-                    }
-                    var dep2 = this.depandancies[id];
-                    if (dep2) {
-                        for (var j = 0, lenj = dep2.length; j < lenj; j++) {
-                            var fd2 = this.osm.getFeatureBy('osm_id', dep2[j]);
-                            this.osm.drawFeature(fd2);
+                if (fd) {
+                    this.osm.drawFeature(fd);
+                    if (fd.type == 'node') {
+                        if (!fd.action) {
+                            fd.action = 'modified';
+                        }
+                        var dep2 = this.depandancies[id];
+                        if (dep2) {
+                            for (var j = 0, lenj = dep2.length; j < lenj; j++) {
+                                var fd2 = this.osm.getFeatureBy('osm_id', dep2[j]);
+                                this.osm.drawFeature(fd2);
+                            }
                         }
                     }
                 }
             }
         }
+    },
+
+    removeFeature: function(f) {
+        f = this.getFeature(f);
+        f.selectStyle = null;
+        f.defaultStyle = null;
+        this.osm.removeFeatures([f]);
     }
 });
 

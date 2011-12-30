@@ -16,12 +16,51 @@ App.ModifyFeatureGeometry = Ext.extend(gxp.plugins.Tool, {
      */
     addActions: function() {
         var mapPanel = this.target.mapPanel;
-        this.control = new OpenLayers.Control.ModifyFeature(
-            mapPanel.map.getLayersByName("OSM")[0], {
-                onUnselect: function(f) {
+        var original = null;
+        this.control = new OpenLayers.Control.ModifyFeature(mapPanel.osm, {
+                unselectFeature: function(f) {
+                    OpenLayers.Control.ModifyFeature.prototype.unselectFeature.apply(this, arguments);
                     f.geometry.getVertices().forEach(function(p) {
-                        osm.drawFeature(osm.getFeatureBy('osm_id', p.osm_id));
+                        mapPanel.drawFeature(mapPanel.osm.getFeatureBy('osm_id', p.osm_id));
+                    }, this);
+
+                    var o = original;
+                    mapPanel.undoList.push({
+                        undo: function(mapPanel) {
+                            var components = [];
+                            var c = o.components;
+                            if (o.CLASS_NAME == "OpenLayers.Geometry.Polygon") {
+                                c = c[0].components;
+                            }
+                            c.forEach(function(p) {
+                                var a = mapPanel.osm.getFeatureBy('osm_id', p.osm_id);
+                                a.geometry.x = p.x;
+                                a.geometry.y = p.y;
+                                components.push(p.osm_id);
+                            }, this);
+
+                            var ga = mapPanel.osm.getFeatureBy('osm_id', o.osm_id);
+                            var line = ga.geometry;
+                            if (line.CLASS_NAME == "OpenLayers.Geometry.Polygon") {
+                                line = line.components[0];
+                            }
+                            line.components.forEach(function(p) {
+                                if (components.indexOf(p.osm_id) < 0) {
+                                    line.removeComponent(p);
+                                    mapPanel.removeFeature(p.osm_id);
+                                }
+                            }, this);
+
+                            f.geometry.getVertices().forEach(function(p) {
+                                mapPanel.drawFeature(mapPanel.osm.getFeatureBy('osm_id', p.osm_id));
+                            }, this);
+                        }
                     });
+                },
+                selectFeature: function(f) {
+                    original = f.geometry.clone();
+                    original.osm_id = f.osm_id;
+                    OpenLayers.Control.ModifyFeature.prototype.selectFeature.apply(this, arguments);
                 },
                 dragVertex: function(vertex) {
                     OpenLayers.Control.ModifyFeature.prototype.dragVertex.apply(this, arguments);
