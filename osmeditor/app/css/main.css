@@ -35,6 +35,9 @@ div.olControlLoadingPanel {
     bottom: 2.3em;
     right: 3px;
 }
+td.x-grid3-dirty-cell {
+    background-image: none;
+}
 a {
     text-decoration: none;
 }
