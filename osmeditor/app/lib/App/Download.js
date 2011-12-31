@@ -17,6 +17,13 @@ App.Download = Ext.extend(gxp.plugins.Tool, {
         if (!this.force && (osm.getFeatureBy('action', 'modified') ||
                 osm.getFeatureBy('action', 'new') ||
                 this.target.mapPanel.deletedFeatures.length > 0)) {
+            console.log("Modified");
+            console.log(osm.getFeatureBy('action', 'modified'));
+            console.log("New");
+            console.log(osm.getFeatureBy('action', 'new'));
+            console.log("Deleted");
+            console.log(this.target.mapPanel.deletedFeatures.length);
+            console.log(this.target.mapPanel.deletedFeatures);
             alert(OpenLayers.i18n("Unable to up download new area on modified features"));
         }
         else {
