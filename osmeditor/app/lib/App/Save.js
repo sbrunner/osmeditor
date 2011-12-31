@@ -16,7 +16,7 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
             border: false,
             bodyStyle: {
                 backgroundColor: 'transparent',
-                padding: '10px'
+                padding: '5px'
             }
         });
         this.progressbar = new Ext.ProgressBar({ width: 300, layout: 'fit' });
