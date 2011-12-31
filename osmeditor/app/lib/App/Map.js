@@ -275,7 +275,7 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
                 }, this);
 
                 this.osm.features.forEach(function(f) {
-                    if (!f.defautStyle) {
+                    if (!f.defaultStyle) {
                         f.selectStyle = this.osm.staticStyleMap.createSymbolizer(f, "select");
                         f.defaultStyle = this.osm.staticStyleMap.createSymbolizer(f);
                     }
