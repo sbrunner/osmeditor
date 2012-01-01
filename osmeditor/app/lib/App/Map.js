@@ -8,6 +8,7 @@
  * @include OSM/Style/Utils.js
  * @include OSM/Style/Mapnik.js
  * @include OSM/Style/JOSM.js
+ * @include OSM/Style/StyleMap.js
  * @include App/Snapping.js
  * @include App/CombinedUndo.js
  */
@@ -55,7 +56,7 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
         this.map.displayProjection = this.displayProjection;
         delete this.displayProjection;
 
-        var styleMap = new OpenLayers.StyleMap(null, {
+        var styleMap = new OSM.Style.StyleMap({
             createSymbolizer: function(feature, intent) {
                 if (intent == 'select' && feature && feature.selectStyle) {
                     return feature.selectStyle;
@@ -64,13 +65,14 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
                     return feature.defaultStyle;
                 }
                 else {
-                    return OpenLayers.StyleMap.prototype.createSymbolizer.apply(this, arguments);
+                    return OSM.Style.StyleMap.prototype.createSymbolizer.apply(this, arguments);
                 }
             }
         });
         this.addStyle('yellow', styleMap.styles["default"]);
         this.addStyle('blue', styleMap.styles["select"]);
         this.addStyle('green', styleMap.styles["temporary"]);
+        styleMap.build();
 
         this.bboxstrategie = new OpenLayers.Strategy.BBOX({
             ratio: 1.2,
@@ -109,12 +111,12 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
             }
         });
 
-        this.osm.staticStyleMap = new OpenLayers.StyleMap();
+        this.osm.staticStyleMap = new OSM.Style.StyleMap();
         this.addStyle('yellow', this.osm.staticStyleMap.styles["default"]);
         this.addStyle('blue', this.osm.staticStyleMap.styles["select"]);
-        this.addStyle('green', this.osm.staticStyleMap.styles["temporary"]);
         this.osm.staticStyleMap = OSM.Style.JOSM.getStyleMap(this.osm.staticStyleMap);
         this.osm.staticStyleMap = OSM.Style.Mapnik.getStyleMap(this.osm.staticStyleMap);
+        this.osm.staticStyleMap.build();
 
         this.osm.events.register('sketchcomplete', this, function(e) {
             var undo = new App.CombinedUndo();
@@ -199,33 +201,30 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
     },
 
     addStyle: function(color, destination) {
-        destination.addRules([new OpenLayers.Rule({
+        destination['point'].addRules([new OpenLayers.Rule({
             symbolizer: {
                 pointRadius: 3,
                 fillOpacity: 1,
                 fillColor: color,
                 strokeOpacity: 0,
                 strokeWidth: 20
-            },
-            filter: new OSM.Style.Utils.PointFilter()
+            }
         })]);
-        destination.addRules([new OpenLayers.Rule({
+        destination['stroke'].addRules([new OpenLayers.Rule({
             symbolizer: {
                 pointRadius: 5,
                 strokeColor: color,
                 strokeWidth: 3
-            },
-            filter: new OSM.Style.Utils.PathFilter()
+            }
         })]);
-        destination.addRules([new OpenLayers.Rule({
+        destination['area'].addRules([new OpenLayers.Rule({
             symbolizer: {
                 pointRadius: 5,
                 fillOpacity: 0.4,
                 fillColor: color,
                 strokeColor: color,
                 strokeWidth: 1
-            },
-            filter: new OSM.Style.Utils.PolygonFilter()
+            }
         })]);
     },
 
