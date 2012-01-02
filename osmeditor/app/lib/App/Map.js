@@ -56,7 +56,7 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
         this.map.displayProjection = this.displayProjection;
         delete this.displayProjection;
 
-        var styleMap = new OSM.Style.StyleMap({
+        var styleMap = new OSM.Style.StyleMap(null, {
             createSymbolizer: function(feature, intent) {
                 if (intent == 'select' && feature && feature.selectStyle) {
                     return feature.selectStyle;
@@ -201,29 +201,35 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
     },
 
     addStyle: function(color, destination) {
-        destination['point'].addRules([new OpenLayers.Rule({
+        destination.point.addRules([new OpenLayers.Rule({
             symbolizer: {
                 pointRadius: 3,
                 fillOpacity: 1,
                 fillColor: color,
                 strokeOpacity: 0,
-                strokeWidth: 20
+                strokeWidth: 20,
+                fontSize: 10,
+                fontFamily: 'sans-serif'
             }
         })]);
-        destination['stroke'].addRules([new OpenLayers.Rule({
+        destination.stroke.addRules([new OpenLayers.Rule({
             symbolizer: {
                 pointRadius: 5,
                 strokeColor: color,
-                strokeWidth: 3
+                strokeWidth: 3,
+                fontSize: 10,
+                fontFamily: 'sans-serif'
             }
         })]);
-        destination['area'].addRules([new OpenLayers.Rule({
+        destination.area.addRules([new OpenLayers.Rule({
             symbolizer: {
                 pointRadius: 5,
                 fillOpacity: 0.4,
                 fillColor: color,
                 strokeColor: color,
-                strokeWidth: 1
+                strokeWidth: 1,
+                fontSize: 10,
+                fontFamily: 'sans-serif'
             }
         })]);
     },
