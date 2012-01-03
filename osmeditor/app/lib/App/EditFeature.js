@@ -34,9 +34,16 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
 
         this.keys = [['name']];
         this.attributes = {};
+        this.addWord('addr:city', '');
+        this.addWord('addr:country', '');
+        this.addWord('addr:housenumber', '');
+        this.addWord('addr:housename', '');
+        this.addWord('addr:postecode', '');
+        this.addWord('addr:street', '');
         this.addWord('access', 'destination');
         this.addWord('access', 'no');
         this.addWord('access', 'permissive');
+        this.addWord('access', 'private');
         this.addWord('access', 'private');
         this.addWord('access', 'public');
         this.addWord('access', 'yes');
@@ -106,6 +113,7 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
         this.addWord('amenity', 'telephone');
         this.addWord('amenity', 'toilets');
         this.addWord('amenity', 'university');
+        this.addWord('area', 'yes');
         this.addWord('barrier', 'block');
         this.addWord('barrier', 'bollard');
         this.addWord('barrier', 'embankment');
@@ -114,6 +122,7 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
         this.addWord('barrier', 'lift_gate');
         this.addWord('bicycle', 'designated');
         this.addWord('bridge', 'yes');
+        this.addWord('building', 'yes');
         this.addWord('building', 'station');
         this.addWord('building', 'supermarket');
         this.addWord('building', 'station');
