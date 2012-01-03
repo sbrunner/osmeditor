@@ -43,6 +43,8 @@ Ext.onReady(function() {
     OpenLayers.Number.thousandsSeparator = ' ';
     OpenLayers.IMAGE_RELOAD_ATTEMPTS = 3;
     OpenLayers.ImgPath = "http://map.stephane-brunner.ch/app/images/oltheme/";
+    // accept ':' in string replacement ex: addr:housenumber
+    OpenLayers.String.tokenRegEx = /\$\{([\w.:]+?)\}/g;
     Ext.QuickTips.init();
 
     // create permalink provider
