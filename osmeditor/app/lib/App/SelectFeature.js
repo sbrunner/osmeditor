@@ -18,9 +18,26 @@ App.SelectFeature = OpenLayers.Class(OpenLayers.Control.SelectFeature, {
             OpenLayers.Element.addClass(this.map.viewPortDiv, "olOverFeaturePolygon");
         }
     },
+
     outFeature: function(feature) {
         OpenLayers.Element.removeClass(this.map.viewPortDiv, "olOverFeaturePoint");
         OpenLayers.Element.removeClass(this.map.viewPortDiv, "olOverFeatureLine");
         OpenLayers.Element.removeClass(this.map.viewPortDiv, "olOverFeaturePolygon");
-    }
+    },
+
+    /**
+     * Method: deactivate
+     * Deactivates the control.
+     *
+     * Returns:
+     * {Boolean} The control was effectively deactivated.
+     */
+    deactivate: function() {
+        OpenLayers.Element.removeClass(this.map.viewPortDiv, "olOverFeaturePoint");
+        OpenLayers.Element.removeClass(this.map.viewPortDiv, "olOverFeatureLine");
+        OpenLayers.Element.removeClass(this.map.viewPortDiv, "olOverFeaturePolygon");
+        return OpenLayers.Control.SelectFeature.prototype.deactivate.apply(this, arguments);
+    },
+
+    CLASS_NAME: "App.SelectFeature"
 });

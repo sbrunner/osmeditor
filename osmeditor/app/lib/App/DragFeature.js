@@ -45,6 +45,13 @@ App.DragFeature = Ext.extend(gxp.plugins.Tool, {
                 OpenLayers.Element.removeClass(mapPanel.map.viewPortDiv, "olDownFeature");
                 OpenLayers.Control.DragFeature.prototype.upFeature.apply(this, arguments);
             },
+            deactivate: function() {
+                OpenLayers.Element.removeClass(this.map.viewPortDiv, "olOverFeaturePoint");
+                OpenLayers.Element.removeClass(this.map.viewPortDiv, "olOverFeatureLine");
+                OpenLayers.Element.removeClass(this.map.viewPortDiv, "olOverFeaturePolygon");
+                OpenLayers.Element.removeClass(this.map.viewPortDiv, "olDownFeature");
+                return OpenLayers.Control.DragFeature.prototype.deactivate.apply(this, arguments);
+            },
             onComplete: function(feature, pixel) {
                 var moveX = this.moveX;
                 var moveY = this.moveY;
