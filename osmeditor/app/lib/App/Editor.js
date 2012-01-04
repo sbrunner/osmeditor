@@ -33,6 +33,7 @@
  * @include App/MenuShortcut.js
  * @include App/Undo.js
  * @include App/SelectFeatures.js
+ * @include App/Actions/Circle.js
  */
 
 var app;
@@ -119,6 +120,8 @@ Ext.onReady(function() {
             toggleGroup: "tool"
         }, {
             ptype: "osm_deletefeature"
+        }, {
+            ptype: "osm_circle"
         }],
         sources: {
             "ol": {

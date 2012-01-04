@@ -55,7 +55,6 @@ App.DragFeature = Ext.extend(gxp.plugins.Tool, {
             onComplete: function(feature, pixel) {
                 var moveX = this.moveX;
                 var moveY = this.moveY;
-                var res = this.map.getResolution();
                 mapPanel.undoList.push({
                     undo: function(mapPanel) {
                         feature.geometry.move(-moveX, -moveY);
