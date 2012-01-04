@@ -13,11 +13,13 @@
  * @include OpenLayers/Control/Attribution.js
  * @include OpenLayers/Control/PanZoomBar.js
  * @include OpenLayers/Layer/SphericalMercator.js
+ * @include OpenLayers/Layer/Bing.js
  * @include OpenLayers/Control/LoadingPanel.js
  * @include GeoExt/widgets/MapPanel.js
  * @include GeoExt/state/PermalinkProvider.js
  * @include App/Map.js
  * @include App/Pan.js
+ * @include App/OpacitySlider.js
  * @include App/Download.js
  * @include App/Login.js
  * @include App/Save.js
@@ -63,6 +65,8 @@ Ext.onReady(function() {
             items: ['map']
         },
         tools: [{
+            ptype: "osm_opacityslider"
+        }, {
             ptype: "osm_pan",
             toggleGroup: "tool",
             pressed: true
@@ -143,11 +147,20 @@ Ext.onReady(function() {
                     "http://b.tile.openstreetmap.org/${z}/${x}/${y}.png",
                     "http://c.tile.openstreetmap.org/${z}/${x}/${y}.png"
                 ], {
+                    ref: 'plan',
                     sphericalMercator: true,
                     wrapDateLine: true,
                     isBaseLayer: false,
                     numZoomLevels: 19,
                     attribution: "Data CC-By-SA by <a href='http://openstreetmap.org/' target='_blank'>OpenStreetMap</a>"
+                }]
+            }, {
+                source: "ol",
+                type: "OpenLayers.Layer.Bing",
+                args: [{
+                    key: 'At1BfDJ7AORxoIDB3XWbl-LrBoS2LiofC9yirzytRrmFJK0sUD6jwCODSXuDas70',
+                    type: 'Aerial',
+                    ref: 'ortho'
                 }]
             }],
             controls: [
@@ -163,10 +176,10 @@ Ext.onReady(function() {
     });
 
     app.addListener('ready', function() {
-        var map = app.mapPanel.map;
-        var osm = map.getLayersByName("OSM")[0];
-        map.removeLayer(osm);
-        map.addLayer(osm);
+        var mapPanel = app.mapPanel;
+        /* move layer to top */
+        mapPanel.map.removeLayer(mapPanel.osm);
+        mapPanel.map.addLayer(mapPanel.osm);
     }, this);
 });
 
