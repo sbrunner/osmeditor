@@ -32,6 +32,7 @@
  * @include App/DeleteFeature.js
  * @include App/MenuShortcut.js
  * @include App/Undo.js
+ * @include App/SelectFeatures.js
  */
 
 var app;
@@ -111,8 +112,13 @@ Ext.onReady(function() {
             ptype: "osm_editfeature",
             toggleGroup: "tool"
         }, {
-            ptype: "osm_deletefeature",
+            ptype: "cgxp_menushortcut",
+            type: '-'
+        }, {
+            ptype: "osm_selectfeatures",
             toggleGroup: "tool"
+        }, {
+            ptype: "osm_deletefeature"
         }],
         sources: {
             "ol": {

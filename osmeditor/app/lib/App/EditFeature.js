@@ -462,7 +462,7 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
         });
 
         var mapPanel = this.target.mapPanel;
-        var control = new App.SelectFeature(mapPanel.map.getLayersByName("OSM")[0], {});
+        var control = new App.SelectFeature(mapPanel.osm, {});
         var tool = this;
         this.control = control;
         control.onUnselect = function(f) {
