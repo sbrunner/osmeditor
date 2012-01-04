@@ -31,6 +31,10 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
     addAccessWord: function(key) {
         this.keys.push([key]);
         this.attributes[key] = [['yes'], ['no'], ['destination'], ['agricultural'], ['delivery'], ['designated'], ['forestry'], ['official'], ['permissive'], ['private']];
+        this.addWord(key + ':forward', 'yes');
+        this.addWord(key + ':forward', 'no');
+        this.addWord(key + ':backward', 'yes');
+        this.addWord(key + ':backward', 'no');
     },
 
     /** api: method[addActions]
@@ -147,6 +151,15 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
         this.addWord('construction', 'trunk');
         this.addWord('construction', 'trunk_link');
         this.addWord('construction', 'unclassified');
+        this.addWord('cycleway', 'lane');
+        this.addWord('cycleway', 'track');
+        this.addWord('cycleway', 'opposite_lane');
+        this.addWord('cycleway', 'opposite_track');
+        this.addWord('cycleway', 'opposite');
+        this.addWord('cycleway', 'shared');
+        this.addWord('cycleway', 'share_busway');
+        this.addWord('cycleway', 'shared_lane');
+        this.addWord('cycleway', 'sharrow');
         this.addWord('disused', 'yes');
         this.addAccessWord('emergency');
         this.addWord('fee', 'yes');
@@ -300,6 +313,9 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
         this.addWord('oneway', '-1');
         this.addWord('oneway', 'yes');
         this.addWord('oneway', 'no');
+        this.addWord('oneway:bicycle', '-1');
+        this.addWord('oneway:bicycle', 'yes');
+        this.addWord('oneway:bicycle', 'no');
         this.addWord('parking', 'surface');
         this.addWord('parking', 'multi-storey');
         this.addWord('parking', 'underground');
