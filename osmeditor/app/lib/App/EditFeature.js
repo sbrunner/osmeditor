@@ -28,6 +28,11 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
         this.attributes[key].push([value]);
     },
 
+    addAccessWord: function(key) {
+        this.keys.push([key]);
+        this.attributes[key] = [['yes'], ['no'], ['destination'], ['agricultural'], ['delivery'], ['designated'], ['forestry'], ['official'], ['permissive'], ['private']];
+    },
+
     /** api: method[addActions]
      */
     addActions: function() {
@@ -40,13 +45,8 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
         this.addWord('addr:housename', '');
         this.addWord('addr:postecode', '');
         this.addWord('addr:street', '');
-        this.addWord('access', 'destination');
-        this.addWord('access', 'no');
-        this.addWord('access', 'permissive');
-        this.addWord('access', 'private');
-        this.addWord('access', 'private');
-        this.addWord('access', 'public');
-        this.addWord('access', 'yes');
+        this.addAccessWord('agricultural');
+        this.addAccessWord('access');
         this.addWord('admin_level', '10');
         this.addWord('admin_level', '2');
         this.addWord('admin_level', '3');
@@ -120,14 +120,17 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
         this.addWord('barrier', 'gate');
         this.addWord('barrier', 'hedge');
         this.addWord('barrier', 'lift_gate');
-        this.addWord('bicycle', 'designated');
-        this.addWord('bridge', 'yes');
+        this.addAccessWord('bicycle');
         this.addWord('building', 'yes');
         this.addWord('building', 'station');
         this.addWord('building', 'supermarket');
         this.addWord('building', 'station');
         this.addWord('building', 'supermarket');
+        this.addAccessWord('bus');
         this.addWord('capital', 'yes');
+        this.addWord('capacity', '');
+        this.addWord('capacity:disabled', '');
+        this.addAccessWord('caravan');
         this.addWord('construction', 'bus_guideway');
         this.addWord('construction', 'cycleway');
         this.addWord('construction', 'living_street');
@@ -145,7 +148,14 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
         this.addWord('construction', 'trunk_link');
         this.addWord('construction', 'unclassified');
         this.addWord('disused', 'yes');
-        this.addWord('foot', 'designated');
+        this.addAccessWord('emergency');
+        this.addWord('fee', 'yes');
+        this.addWord('fee', 'no');
+        this.addAccessWord('foot');
+        this.addAccessWord('forestry');
+        this.addAccessWord('goods');
+        this.addAccessWord('hazmat');
+        this.addAccessWord('hgv');
         this.addWord('highway', 'bridleway');
         this.addWord('highway', 'bus_stop');
         this.addWord('highway', 'byway');
@@ -184,7 +194,8 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
         this.addWord('highway', 'unsurfaced');
         this.addWord('historic', 'archaeological_site');
         this.addWord('historic', 'memorial');
-        this.addWord('horse', 'designated');
+        this.addAccessWord('horse');
+        this.addAccessWord('hov');
         this.addWord('landuse', 'allotments');
         this.addWord('landuse', 'basin');
         this.addWord('landuse', 'brownfield');
@@ -216,6 +227,11 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
         this.addWord('landuse', 'vineyard');
         this.addWord('landuse', 'water');
         this.addWord('landuse', 'wood');
+        this.addWord('layer', '-5');
+        this.addWord('layer', '-4');
+        this.addWord('layer', '-3');
+        this.addWord('layer', '-2');
+        this.addWord('layer', '-1');
         this.addWord('layer', '1');
         this.addWord('layer', '2');
         this.addWord('layer', '3');
@@ -247,6 +263,12 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
         this.addWord('man_made', 'windmill');
         this.addWord('military', 'barracks');
         this.addWord('military', 'danger_area');
+        this.addAccessWord('mofa');
+        this.addAccessWord('moh');
+        this.addAccessWord('moped');
+        this.addAccessWord('motocar');
+        this.addAccessWord('motorcycle');
+        this.addAccessWord('motor_vehicle');
         this.addWord('natural', 'bay');
         this.addWord('natural', 'beach');
         this.addWord('natural', 'cave_entrance');
@@ -269,8 +291,28 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
         this.addWord('natural', 'water');
         this.addWord('natural', 'wetland');
         this.addWord('natural', 'wood');
+        this.addWord('maxlength', '');
+        this.addWord('maxheight', '');
+        this.addWord('maxspeed', '');
+        this.addWord('maxstay', '');
+        this.addWord('maxweight', '');
+        this.addWord('maxwidth', '');
         this.addWord('oneway', '-1');
         this.addWord('oneway', 'yes');
+        this.addWord('oneway', 'no');
+        this.addWord('parking', 'surface');
+        this.addWord('parking', 'multi-storey');
+        this.addWord('parking', 'underground');
+        this.addWord('parking', 'sheds');
+        this.addWord('parking', 'carports');
+        this.addWord('parking', 'garage_boxes');
+        this.addWord('park_ride', 'yes');
+        this.addWord('park_ride', 'no');
+        this.addWord('park_ride', 'bus');
+        this.addWord('park_ride', 'train');
+        this.addWord('park_ride', 'tram');
+        this.addWord('park_ride', 'metro');
+        this.addWord('park_ride', 'ferry');
         this.addWord('place', 'city');
         this.addWord('place', 'continent');
         this.addWord('place', 'country');
@@ -292,6 +334,7 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
         this.addWord('power_source', 'wind');
         this.addWord('power', 'station');
         this.addWord('power', 'sub_station');
+        this.addAccessWord('psv');
         this.addWord('railway', 'abandoned');
         this.addWord('railway', 'construction');
         this.addWord('railway', 'disused');
@@ -331,6 +374,14 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
         this.addWord('shop', 'florist');
         this.addWord('shop', 'hairdresser');
         this.addWord('shop', 'supermarket');
+        this.addAccessWord('snowmobile');
+        this.addWord('supervised', 'yes');
+        this.addWord('supervised', 'no');
+        this.addAccessWord('ski');
+        this.addAccessWord('ski:nordic');
+        this.addAccessWord('ski:alpine');
+        this.addAccessWord('ski:telemark');
+        this.addAccessWord('taxi');
         this.addWord('tourism', 'alpine_hut');
         this.addWord('tourism', 'attraction');
         this.addWord('tourism', 'bed_and_breakfast');
@@ -347,12 +398,14 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
         this.addWord('tourism', 'theme_park');
         this.addWord('tourism', 'viewpoint');
         this.addWord('tourism', 'zoo');
+        this.addAccessWord('tourist_bus');
         this.addWord('tracktype', 'grade1');
         this.addWord('tracktype', 'grade2');
         this.addWord('tracktype', 'grade3');
         this.addWord('tracktype', 'grade4');
         this.addWord('tracktype', 'grade5');
         this.addWord('tunnel', 'yes');
+        this.addAccessWord('vehicle');
         this.addWord('waterway', 'canal');
         this.addWord('waterway', 'dam');
         this.addWord('waterway', 'derelict_canal');
