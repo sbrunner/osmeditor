@@ -1,8 +1,6 @@
 
 /*
  * @requires plugins/Tool.js
- * @include GeoExt/widgets/Action.js
- * @include App/SelectFeature.js
  * @include App/CombinedUndo.js
  */
 
@@ -17,7 +15,7 @@ App.Action.Circle = Ext.extend(gxp.plugins.Tool, {
      */
     addActions: function() {
         var actions = [new Ext.Action(this)];
-        return App.ModifyFeatureGeometry.superclass.addActions.apply(this, [actions]);
+        return App.Action.Circle.superclass.addActions.apply(this, [actions]);
     },
 
     handler: function() {
