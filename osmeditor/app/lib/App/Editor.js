@@ -34,6 +34,7 @@
  * @include App/Undo.js
  * @include App/SelectFeatures.js
  * @include App/Actions/Circle.js
+ * @include App/Actions/Orthogonalize.js
  */
 
 var app;
@@ -122,6 +123,8 @@ Ext.onReady(function() {
             ptype: "osm_deletefeature"
         }, {
             ptype: "osm_circle"
+        }, {
+            ptype: "osm_orthogonalize"
         }],
         sources: {
             "ol": {
