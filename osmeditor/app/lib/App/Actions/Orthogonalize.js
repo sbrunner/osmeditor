@@ -19,13 +19,25 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
             "Select them and press the shortcut for Orthogonalize / Undo.)"),
 
     // within a way
-    innerTolerance: Math.PI/4,
+    innerTolerance: null,
     // ways relative to each other
-    outerTolerance: Math.PI/4,
+    outerTolerance: null,
 
     nbDirections: 4,
 
-    directionAngle: Math.PI/2,
+    directionAngle: null,
+
+    /** private: method[constructor]
+     */
+    constructor: function(config) {
+        if (config && config.nbDirections) {
+            this.nbDirections = config.nbDirections;
+        }
+        this.innerTolerance = Math.PI / this.nbDirections;
+        this.outerTolerance = Math.PI / this.nbDirections;
+        this.directionAngle = Math.PI / this.nbDirections * 2;
+        App.Action.Orthogonalize.superclass.constructor.apply(this, arguments);
+    },
 
     /** api: method[addActions]
      */
@@ -35,21 +47,29 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
     },
 
     handler: function() {
+        var sel = this.target.mapPanel.osm.selectedFeatures;
+        var undo = this.ortho(sel);
+        this.target.mapPanel.undoList.push(undo);
+
+    },
+
+    ortho: function(sel) {
         var nodeList = [];
         var wayDataList = [];
-        var sel = this.target.mapPanel.osm.selectedFeatures;
 
         // collect nodes and ways from the selection
         sel.forEach(function (p) {
             if (p.geometry.CLASS_NAME == "OpenLayers.Geometry.Point") {
                 nodeList.push(p.geometry);
             }
-            else if (p.geometry.CLASS_NAME == "OpenLayers.Geometry.LineString") {
+            else if (p.geometry.CLASS_NAME == "OpenLayers.Geometry.LineString" ||
+                    p.geometry.CLASS_NAME == "OpenLayers.Geometry.LinearRing") {
                 wayDataList.push({
                     way: p,
                     nodes: p.geometry.components
                 });
-            } else {
+            }
+            else {
                 wayDataList.push({
                     way: p,
                     nodes: p.geometry.components[0].components
@@ -74,7 +94,7 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
                 }, this);
             }
 
-            this.target.mapPanel.undoList.push(undo);
+            return undo;
         }
         else {
             alert(this.usage);
@@ -207,14 +227,15 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
         // rotate
         allNodes.forEach(function(n) {
             var tmp = this.rotate_cc(pivot, n, - headingAll);
-            nXY[n.osm_id] = {
+            nXY[n.id] = {
                 directionsValues: [],
                 directionsErrors: [],
                 point: tmp
             }
             for (var i = 0 ; i < this.nbDirections / 2 ; i++) {
                 var t = this.rotate_cc({x: 0., y: 0.}, tmp, i * this.directionAngle + Math.PI / 2);
-                nXY[n.osm_id].directionsValues[i] = t.x;
+                nXY[n.id].directionsValues[i] = t.x;
+                nXY[n.id].directionsErrors[i] = Number.POSITIVE_INFINITY;
             }
         }, this);
 
@@ -253,25 +274,27 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
                     }, this);
                 }
 
-                var average = 0;
-                cs.forEach(function(n) {
-                    average += nXY[n.osm_id].directionsValues[orientation];
-                }, this);
-                average = average / cs.length;
+                if (cs.length > 1) {
+                    var average = 0;
+                    cs.forEach(function(n) {
+                        average += nXY[n.id].directionsValues[orientation];
+                    }, this);
+                    average = average / cs.length;
 
-                // if one of the nodes is a heading node, forget about the average and use its value
-                headingNodes.forEach(function(fn) {
-                    if (OpenLayers.Util.indexOf(cs, fn) >= 0) {
-                        average = nXY[fn.osm_id].directionsValues[orientation];
-                    }
-                }, this);
+                    // if one of the nodes is a heading node, forget about the average and use its value
+                    headingNodes.forEach(function(fn) {
+                        if (OpenLayers.Util.indexOf(cs, fn) >= 0) {
+                            average = nXY[fn.id].directionsValues[orientation];
+                        }
+                    }, this);
+
+                    cs.forEach(function(n) {
+                        nXY[n.id].directionsErrors[orientation] = average - nXY[n.id].directionsValues[orientation];
+                    }, this);
+                }
 
                 cs.forEach(function(n) {
-                    nXY[n.osm_id].directionsErrors[orientation] = average - nXY[n.osm_id].directionsValues[orientation];
-                }, this);
-
-                cs.forEach(function(n) {
-                    s.remove(n);
+                    OpenLayers.Util.removeItem(s, n);
                 }, this);
             }
             if (!s.length == 0) {
@@ -282,7 +305,7 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
         // rotate back and log the change
         commands = [];
         allNodes.forEach(function(n) {
-            var nxy = nXY[n.osm_id];
+            var nxy = nXY[n.id];
             var d1, d2;
             var e1 = Number.POSITIVE_INFINITY;
             var e2 = Number.POSITIVE_INFINITY;
@@ -291,45 +314,51 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
                 if (e < e1) {
                     e2 = e1;
                     d2 = d1;
-                    e1 = nxy.directionsErrors[d];
+                    e1 = e;
                     d1 = d;
                 }
                 else if (e < e2) {
-                    e2 = nxy.directionsErrors[d];
+                    e2 = e;
                     d2 = d;
                 }
             }
 
-            var c1 = this.rotate_cc({x: 0., y: 0.},
-                    {y: 0., x: -nxy.directionsErrors[d1] * Math.abs(Math.sin((d2 - d1) * this.directionAngle))},
-                    this.directionAngle * d2);
-            var c2 = this.rotate_cc({x: 0., y: 0.},
-                    {y: 0., x: -nxy.directionsErrors[d2] * Math.abs(Math.sin((d1 - d2) * this.directionAngle))},
-                    this.directionAngle * d1);
-
+            var c1 = this.getCorection(nxy.directionsErrors[d1], d1, d2);
+            var c2 = this.getCorection(nxy.directionsErrors[d2], d2, d1);
             var tmp = this.sum(this.sum(nxy.point, c1), c2);
             tmp = this.rotate_cc(pivot, tmp, headingAll);
-            var dx = tmp.x - n.x;
-            var dy = tmp.y - n.y;
-            if (OpenLayers.Util.indexOf(headingNodes, n) >= 0) { // The heading nodes should not have changed
-                var EPSILON = 1E-6;
-                if (Math.abs(dx) > Math.abs(EPSILON * tmp.x) ||
-                        Math.abs(dy) > Math.abs(EPSILON * tmp.x))
-                    throw "error 2";
-            }
-            else {
+
+            var dx = tmp.x.toFixed(3) - n.x;
+            var dy = tmp.y.toFixed(3) - n.y;
+            n.move(dx, dy);
+            if (this.target) {
                 var feature = this.target.mapPanel.getFeature(n.osm_id);
-                feature.geometry.move(dx, dy);
                 this.target.mapPanel.drawFeature(feature);
-                commands.push({
-                    undo: function(mapPanel) {
-                        feature.geometry.move(-dx, -dy);
-                        mapPanel.drawFeature(feature);
-                    }
-                });
             }
+
+            commands.push({
+                undo: function(mapPanel) {
+                    feature.geometry.move(-dx, -dy);
+                    mapPanel.drawFeature(feature);
+                }
+            });
         }, this);
         return commands;
+    },
+
+    getCorection: function(e, d, dp) {
+        if (d === undefined) {
+            return {x: 0., y: 0.};
+        }
+        if (dp === undefined) {
+            return this.rotate_cc({x: 0., y: 0.}, {x: 0., y: -e}, this.directionAngle * d);
+        }
+        var a = (dp - d) * this.directionAngle;
+        if (a < 0) {
+            a += Math.PI;
+        }
+        var coor = Math.sin(a);
+        return this.rotate_cc({x: 0., y: 0.}, {y: 0., x: -e / coor}, this.directionAngle * dp);
     },
 
     /**
@@ -358,20 +387,15 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
 
         // sum up segments
         var hv = []
-        for (var i = 0 ; i < this.nbDirections / 2 ; i++) {
+        for (var i = 0 ; i < this.nbDirections ; i++) {
             hv[i] = {x: 0., y: 0.};
         }
         for (var i = 0; i < way.nSeg; ++i) {
             var segment = this.diff(en[i+1], en[i]);
-
-            for (var j = 0 ; j < this.nbDirections / 2 ; j++) {
-                var dir = way.segDirections[i];
-                if (dir === j || dir === j + this.nbDirections / 2) {
-                    hv[i] = this.sum(hv[j], segment);
-                    break;
-                }
-            }
+            var dir = way.segDirections[i];
+            hv[dir] = this.sum(hv[dir], segment);
         }
+
         // rotate the vertical vector by 90 degrees (clockwise) and add it to the horizontal vector
         way.segSum = {x: 0., y: 0.};
         for (var i = 0 ; i < this.nbDirections / 2 ; i++) {
@@ -455,3 +479,101 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
 });
 
 Ext.preg(App.Action.Orthogonalize.prototype.ptype, App.Action.Orthogonalize);
+
+/*
+ * @requ ires OpenLayers/Format/WKT.js
+ */
+/*
+var o90 = new App.Action.Orthogonalize();
+var o60 = new App.Action.Orthogonalize({nbDirections: 6});
+var o45 = new App.Action.Orthogonalize({nbDirections: 8});
+var o30 = new App.Action.Orthogonalize({nbDirections: 12});
+
+console.log("(-1, -1)");
+console.log(o45.getCorection(1, 0, 1)); // (-1, -1)
+console.log("(0, -1)");
+console.log(o45.getCorection(1, 0, 2)); // (0, -1)
+console.log("(1, -1)");
+console.log(o45.getCorection(1, 0, 3)); // (1, -1)
+
+console.log("(-1.4, 0)");
+console.log(o45.getCorection(1, 1, 0)); // (-1.4, 0)
+console.log("(-1, 0)");
+console.log(o45.getCorection(1, 2, 0)); // (-1, 0)
+console.log("(-1.4, 0)");
+console.log(o45.getCorection(1, 3, 0)); // (-1.4, 0)
+
+console.log("(1, 1)");
+console.log(o45.getCorection(-1, 0, 1)); // (1, 1)
+console.log("(0, 1)");
+console.log(o45.getCorection(-1, 0, 2)); // (0, 1)
+console.log("(-1, 1)");
+console.log(o45.getCorection(-1, 0, 3)); // (-1, 1)
+
+console.log("(1.4, 0)");
+console.log(o45.getCorection(-1, 1, 0)); // (1.4, 0)
+console.log("(1, 0)");
+console.log(o45.getCorection(-1, 2, 0)); // (1, 0)
+console.log("(1.4, 0)");
+console.log(o45.getCorection(-1, 3, 0)); // (1.4, 0)
+console.log();
+
+var way = new OpenLayers.Feature.Vector(
+new OpenLayers.Geometry.Polygon([
+new OpenLayers.Geometry.LinearRing([
+new OpenLayers.Geometry.Point(0,0),
+new OpenLayers.Geometry.Point(0,1),
+new OpenLayers.Geometry.Point(0.9,1.1),
+new OpenLayers.Geometry.Point(1,0)
+])]));
+console.log(way.geometry.toString());
+o90.ortho([way,
+new OpenLayers.Feature.Vector(new OpenLayers.Geometry.Point(0,0)),
+new OpenLayers.Feature.Vector(new OpenLayers.Geometry.Point(1,0))
+])
+console.log(way.geometry.toString());
+console.log("POLYGON((0 0,0 1.05,0.95 1.05,0.95 0,0 0))");
+console.log();
+
+var way = new OpenLayers.Feature.Vector(
+new OpenLayers.Geometry.Polygon([
+new OpenLayers.Geometry.LinearRing([
+new OpenLayers.Geometry.Point(0,0),
+new OpenLayers.Geometry.Point(0,1),
+new OpenLayers.Geometry.Point(0.9,1.1),
+new OpenLayers.Geometry.Point(1,0)
+])]));
+console.log(way.geometry.toString());
+o45.ortho([way,
+new OpenLayers.Feature.Vector(new OpenLayers.Geometry.Point(0,0)),
+new OpenLayers.Feature.Vector(new OpenLayers.Geometry.Point(1,0))
+])
+console.log(way.geometry.toString());
+console.log("POLYGON((0 0,0 1.05,0.95 1.05,0.95 0,0 0))");
+console.log();
+
+
+var way = new OpenLayers.Feature.Vector(
+new OpenLayers.Geometry.Polygon([
+new OpenLayers.Geometry.LinearRing([
+new OpenLayers.Geometry.Point(0,0),
+new OpenLayers.Geometry.Point(0,1),
+new OpenLayers.Geometry.Point(0.9,1.1),
+new OpenLayers.Geometry.Point(1,0)
+])]));
+console.log(way.geometry.toString());
+o90.ortho([way])
+console.log(way.geometry.toString());
+
+var way = new OpenLayers.Feature.Vector(
+new OpenLayers.Geometry.Polygon([
+new OpenLayers.Geometry.LinearRing([
+new OpenLayers.Geometry.Point(0,0),
+new OpenLayers.Geometry.Point(0,1),
+new OpenLayers.Geometry.Point(0.9,1.1),
+new OpenLayers.Geometry.Point(1,0)
+])]));
+console.log(way.geometry.toString());
+o45.ortho([way])
+console.log(way.geometry.toString());
+*/

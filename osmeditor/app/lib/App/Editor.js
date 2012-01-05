@@ -124,7 +124,25 @@ Ext.onReady(function() {
         }, {
             ptype: "osm_circle"
         }, {
+            ptype: "cgxp_menushortcut",
+            type: '-'
+        }, {
             ptype: "osm_orthogonalize"
+        }, {
+            ptype: "osm_orthogonalize",
+            text: "60",
+            nbDirections: 6
+        }, {
+            ptype: "osm_orthogonalize",
+            text: "45",
+            nbDirections: 8
+        }, {
+            ptype: "osm_orthogonalize",
+            text: "30",
+            nbDirections: 12
+        }, {
+            ptype: "cgxp_menushortcut",
+            type: '-'
         }],
         sources: {
             "ol": {
