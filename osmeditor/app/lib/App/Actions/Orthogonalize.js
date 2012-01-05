@@ -13,16 +13,19 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
 
     text: OpenLayers.i18n("Orthogonalize"),
 
+    usage: OpenLayers.i18n("When one or more ways are selected, the shape is adjusted such, that all angles are 90 or 180 degrees.\n" +
+            "You can add two nodes to the selection. Then, the direction is fixed by these two reference nodes. " +
+            "(Afterwards, you can undo the movement for certain nodes:\n" +
+            "Select them and press the shortcut for Orthogonalize / Undo.)"),
+
     // within a way
-    TOLERANCE1: Math.PI/4,
+    innerTolerance: Math.PI/4,
     // ways relative to each other
-    TOLERANCE2: Math.PI/4,
+    outerTolerance: Math.PI/4,
 
-    RIGHT: 0,
-    UP: 1,
-    LEFT: 2,
-    DOWN: 3,
+    nbDirections: 4,
 
+    directionAngle: Math.PI/2,
 
     /** api: method[addActions]
      */
@@ -54,11 +57,8 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
             }
         }, this);
         if (wayDataList.length == 0) {
-            alert(OpenLayers.i18n("When one or more ways are selected, the shape is adjusted such, that all angles are 90 or 180 degrees.\n" +
-                    "You can add two nodes to the selection. Then, the direction is fixed by these two reference nodes. " +
-                    "(Afterwards, you can undo the movement for certain nodes:\n" +
-                    "Select them and press the shortcut for Orthogonalize / Undo.)"));
-            return;
+            alert(this.usage);
+            throw "wrong selection";
         }
 
         if (nodeList.length == 2 || nodeList.length == 0) {
@@ -77,11 +77,8 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
             this.target.mapPanel.undoList.push(undo);
         }
         else {
-            alert(OpenLayers.i18n("When one or more ways are selected, the shape is adjusted such, that all angles are 90 or 180 degrees.\n" +
-                    "You can add two nodes to the selection. Then, the direction is fixed by these two reference nodes. " +
-                    "(Afterwards, you can undo the movement for certain nodes:\n" +
-                    "Select them and press the shortcut for Orthogonalize / Undo.)"));
-            return;
+            alert(this.usage);
+            throw "wrong selection";
         }
     },
 
@@ -164,13 +161,14 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
         var headingAll;
         if (headingNodes.length == 0) {
             // find directions of the segments and make them consistent between different ways
-            this.calcDirections(wayDataList[0], this.RIGHT);
+            this.calcDirections(wayDataList[0], 0);
             var refHeading = wayDataList[0].heading;
             wayDataList.forEach(function(w) {
-                this.calcDirections(w, this.RIGHT);
-                var directionOffset = this.angleToDirectionChange(w.heading - refHeading, this.TOLERANCE2);
-                this.calcDirections(w, this.changeDirectionBy(this.RIGHT, directionOffset));
-                if (this.angleToDirectionChange(refHeading - w.heading, this.TOLERANCE2) != 0) {
+
+                this.calcDirections(w, 0);
+                var directionOffset = this.angleToDirectionChange(w.heading - refHeading, this.outerTolerance);
+                this.calcDirections(w, this.changeDirectionBy(0, directionOffset));
+                if (this.angleToDirectionChange(refHeading - w.heading, this.outerTolerance) != 0) {
                     throw "error 1";
                 }
             }, this);
@@ -183,9 +181,9 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
         else {
             headingAll = this.polar(headingNodes[0], headingNodes[1]);
             wayDataList.forEach(function(w) {
-                this.calcDirections(w, this.RIGHT);
-                var directionOffset = this.angleToDirectionChange(w.heading - headingAll, this.TOLERANCE2);
-                this.calcDirections(w, this.changeDirectionBy(this.RIGHT, directionOffset));
+                this.calcDirections(w, 0);
+                var directionOffset = this.angleToDirectionChange(w.heading - headingAll, this.outerTolerance);
+                this.calcDirections(w, this.changeDirectionBy(0, directionOffset));
             }, this);
         }
 
@@ -196,8 +194,7 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
         }, this);
 
         // the new x and y value for each node
-        var nX = {};
-        var nY = {};
+        var nXY = {};
 
         // calculate the centroid of all nodes
         // it is used as rotation center
@@ -210,15 +207,19 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
         // rotate
         allNodes.forEach(function(n) {
             var tmp = this.rotate_cc(pivot, n, - headingAll);
-            nX[n.osm_id] = tmp.x;
-            nY[n.osm_id] = tmp.y;
+            nXY[n.osm_id] = {
+                directionsValues: [],
+                directionsErrors: [],
+                point: tmp
+            }
+            for (var i = 0 ; i < this.nbDirections / 2 ; i++) {
+                var t = this.rotate_cc({x: 0., y: 0.}, tmp, i * this.directionAngle + Math.PI / 2);
+                nXY[n.osm_id].directionsValues[i] = t.x;
+            }
         }, this);
 
         // orthogonalize
-        var HORIZONTAL = [this.RIGHT, this.LEFT];
-        var VERTICAL = [this.UP, this.DOWN];
-        var ORIENTATIONS = [HORIZONTAL, VERTICAL];
-        ORIENTATIONS.forEach(function(orientation) {
+        for (var orientation = 0 ; orientation < this.nbDirections / 2 ; orientation++) {
             var s = [].concat(allNodes);
             var s_size = s.length;
             for (var dummy = 0; dummy < s_size; ++dummy) {
@@ -238,7 +239,7 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
                         for (var i=0; i < w.nSeg; ++i) {
                             var n1 = w.nodes[i];
                             var n2 = w.nodes[i+1];
-                            if (OpenLayers.Util.indexOf(orientation, w.segDirections[i]) >= 0) {
+                            if (w.segDirections[i] === orientation || w.segDirections[i] === orientation + this.nbDirections / 2) {
                                 if (OpenLayers.Util.indexOf(cs, n1) >= 0 && OpenLayers.Util.indexOf(cs, n2) < 0) {
                                     cs.push(n2);
                                     somethingHappened = true;
@@ -252,36 +253,61 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
                     }, this);
                 }
 
-                var nC = (orientation == HORIZONTAL) ? nY : nX;
-
                 var average = 0;
                 cs.forEach(function(n) {
-                    average += nC[n.osm_id];
+                    average += nXY[n.osm_id].directionsValues[orientation];
                 }, this);
                 average = average / cs.length;
 
                 // if one of the nodes is a heading node, forget about the average and use its value
                 headingNodes.forEach(function(fn) {
                     if (OpenLayers.Util.indexOf(cs, fn) >= 0) {
-                        average = nC[fn.osm_id];
+                        average = nXY[fn.osm_id].directionsValues[orientation];
                     }
                 }, this);
 
                 cs.forEach(function(n) {
-                    nC[n.osm_id] = average;
+                    nXY[n.osm_id].directionsErrors[orientation] = average - nXY[n.osm_id].directionsValues[orientation];
                 }, this);
 
                 cs.forEach(function(n) {
                     s.remove(n);
                 }, this);
             }
-            if (!s.length == 0) throw new RuntimeException();
-        }, this);
+            if (!s.length == 0) {
+                throw "error 4";
+            }
+        }
 
         // rotate back and log the change
         commands = [];
         allNodes.forEach(function(n) {
-            var tmp = {x: nX[n.osm_id], y: nY[n.osm_id]};
+            var nxy = nXY[n.osm_id];
+            var d1, d2;
+            var e1 = Number.POSITIVE_INFINITY;
+            var e2 = Number.POSITIVE_INFINITY;
+            for (var d = 0 ; d < this.nbDirections / 2 ; d++) {
+                var e = Math.abs(nxy.directionsErrors[d]);
+                if (e < e1) {
+                    e2 = e1;
+                    d2 = d1;
+                    e1 = nxy.directionsErrors[d];
+                    d1 = d;
+                }
+                else if (e < e2) {
+                    e2 = nxy.directionsErrors[d];
+                    d2 = d;
+                }
+            }
+
+            var c1 = this.rotate_cc({x: 0., y: 0.},
+                    {y: 0., x: -nxy.directionsErrors[d1] * Math.abs(Math.sin((d2 - d1) * this.directionAngle))},
+                    this.directionAngle * d2);
+            var c2 = this.rotate_cc({x: 0., y: 0.},
+                    {y: 0., x: -nxy.directionsErrors[d2] * Math.abs(Math.sin((d1 - d2) * this.directionAngle))},
+                    this.directionAngle * d1);
+
+            var tmp = this.sum(this.sum(nxy.point, c1), c2);
             tmp = this.rotate_cc(pivot, tmp, headingAll);
             var dx = tmp.x - n.x;
             var dy = tmp.y - n.y;
@@ -292,9 +318,6 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
                     throw "error 2";
             }
             else {
-                console.log(1111)
-                console.log(dx)
-                console.log(dy)
                 var feature = this.target.mapPanel.getFeature(n.osm_id);
                 feature.geometry.move(dx, dy);
                 this.target.mapPanel.drawFeature(feature);
@@ -329,48 +352,31 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
         for (var i=0; i < way.nSeg - 1; i++) {
             var h1 = this.polar(en[i],en[i+1]);
             var h2 = this.polar(en[i+1],en[i+2]);
-            direction = this.changeDirectionBy(direction, this.angleToDirectionChange(h2 - h1, this.TOLERANCE1));
+            direction = this.changeDirectionBy(direction, this.angleToDirectionChange(h2 - h1, this.outerTolerance));
             way.segDirections[i+1] = direction;
         }
 
         // sum up segments
-        var h = {x: 0., y: 0.};
-        //var lh = this.abs(h);
-        var v = {x: 0., y: 0.};
-        //var lv = this.abs(v);
+        var hv = []
+        for (var i = 0 ; i < this.nbDirections / 2 ; i++) {
+            hv[i] = {x: 0., y: 0.};
+        }
         for (var i = 0; i < way.nSeg; ++i) {
             var segment = this.diff(en[i+1], en[i]);
-            if (way.segDirections[i] == this.RIGHT) {
-                h = this.sum(h,segment);
+
+            for (var j = 0 ; j < this.nbDirections / 2 ; j++) {
+                var dir = way.segDirections[i];
+                if (dir === j || dir === j + this.nbDirections / 2) {
+                    hv[i] = this.sum(hv[j], segment);
+                    break;
+                }
             }
-            else if (way.segDirections[i] == this.UP) {
-                v = this.sum(v,segment);
-            }
-            else if (way.segDirections[i] == this.LEFT) {
-                h = this.diff(h,segment);
-            }
-            else if (way.segDirections[i] == this.DOWN) {
-                v = this.diff(v,segment);
-            }
-            else {
-                throw "error 3";
-            }
-            /**
-             * When summing up the length of the sum vector should increase.
-             * However, it is possible to construct ways, such that this assertion fails.
-             * So only uncomment this for testing
-             **/
-            //                if (segDirections[i].ordinal() % 2 == 0) {
-            //                    if (this.abs(h) < lh) throw new AssertionError();
-            //                    lh = this.abs(h);
-            //                } else {
-            //                    if (this.abs(v) < lv) throw new AssertionError();
-            //                    lv = this.abs(v);
-            //                }
         }
         // rotate the vertical vector by 90 degrees (clockwise) and add it to the horizontal vector
-        way.segSum = this.sum(h, {x: v.y, y: - v.x});
-        //            if (this.abs(this.segSum) < lh) throw new AssertionError();
+        way.segSum = {x: 0., y: 0.};
+        for (var i = 0 ; i < this.nbDirections / 2 ; i++) {
+            way.segSum = this.sum(way.segSum, this.rotate_cc({x: 0., y: 0.}, hv[i], i * this.directionAngle));
+        }
         way.heading = this.polar({x: 0., y: 0.}, way.segSum);
     },
 
@@ -406,36 +412,23 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
      */
     angleToDirectionChange: function(a, deltaMax) {
         a = this.standard_angle_mPI_to_PI(a);
-        var d0 = Math.abs(a);
-        var d90 = Math.abs(a - Math.PI / 2);
-        var d_m90 = Math.abs(a + Math.PI / 2);
+
         var dirChange;
-        if (d0 < deltaMax) {
-            dirChange =  0;
-        }
-        else if (d90 < deltaMax) {
-            dirChange =  1;
-        }
-        else if (d_m90 < deltaMax) {
-            dirChange = -1;
-        }
-        else {
-            a = this.standard_angle_0_to_2PI(a);
-            var d180 = Math.abs(a - Math.PI);
-            if (d180 < deltaMax) {
-                dirChange = 2;
-            }
-            else {
-                return Number.NaN;
+        for (var i = 0 ; i < this.nbDirections ; i++) {
+            var d = Math.abs(this.standard_angle_mPI_to_PI(a + i * this.directionAngle));
+            if (d < deltaMax) {
+                dirChange = i;
+                break;
             }
         }
         return dirChange;
     },
 
     changeDirectionBy: function(direction, directionChange) {
-        tmp = (direction + directionChange) % 4;
+        tmp = (direction + directionChange) % this.nbDirections;
+        // the % operator can return negative value
         if (tmp < 0) {
-            tmp += 4;          // the % operator can return negative value
+            tmp += this.nbDirections;
         }
         return tmp;
     },
