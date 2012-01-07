@@ -15,8 +15,6 @@ App.Download = Ext.extend(gxp.plugins.Tool, {
 
     force: false,
 
-    mapBounds: null,
-
     layer: null,
 
     handler: function() {
@@ -36,9 +34,8 @@ App.Download = Ext.extend(gxp.plugins.Tool, {
         else {
             var mapBounds = this.target.mapPanel.bboxstrategie.getMapBounds();
             if (mapBounds !== null && this.target.mapPanel.bboxstrategie.invalidBounds(mapBounds)) {
-                this.tool.mapBounds =  mapBounds;
                 this.target.mapPanel.osm.destroyFeatures();
-                this.tool.displayBbox();
+                this.tool.displayBbox(mapBounds);
                 this.target.mapPanel.undoList = [];
                 this.target.mapPanel.depandancies = {};
                 this.target.mapPanel.bboxstrategie.update();
@@ -46,47 +43,49 @@ App.Download = Ext.extend(gxp.plugins.Tool, {
         }
     },
 
-    displayBbox: function() {
+    displayBbox: function(mapBounds) {
         var maxextent = this.target.mapPanel.map.getMaxExtent().toGeometry().components[0];
         var mapBounds100 = new OpenLayers.Bounds(
-            this.mapBounds.left - 100,
-            this.mapBounds.bottom - 100,
-            this.mapBounds.right + 100,
-            this.mapBounds.top + 100).toGeometry().components[0];
+            mapBounds.left - 100,
+            mapBounds.bottom - 100,
+            mapBounds.right + 100,
+            mapBounds.top + 100).toGeometry().components[0];
         var mapBounds1000 = new OpenLayers.Bounds(
-            this.mapBounds.left - 1000,
-            this.mapBounds.bottom - 1000,
-            this.mapBounds.right + 1000,
-            this.mapBounds.top + 1000).toGeometry().components[0];
+            mapBounds.left - 1000,
+            mapBounds.bottom - 1000,
+            mapBounds.right + 1000,
+            mapBounds.top + 1000).toGeometry().components[0];
         var mapBounds10000 = new OpenLayers.Bounds(
-            this.mapBounds.left - 10000,
-            this.mapBounds.bottom - 10000,
-            this.mapBounds.right + 10000,
-            this.mapBounds.top + 10000).toGeometry().components[0];
+            mapBounds.left - 10000,
+            mapBounds.bottom - 10000,
+            mapBounds.right + 10000,
+            mapBounds.top + 10000).toGeometry().components[0];
         var mapBounds100000 = new OpenLayers.Bounds(
-            this.mapBounds.left - 100000,
-            this.mapBounds.bottom - 100000,
-            this.mapBounds.right + 100000,
-            this.mapBounds.top + 100000).toGeometry().components[0];
+            mapBounds.left - 100000,
+            mapBounds.bottom - 100000,
+            mapBounds.right + 100000,
+            mapBounds.top + 100000).toGeometry().components[0];
         var mapBounds1000000 = new OpenLayers.Bounds(
-            this.mapBounds.left - 1000000,
-            this.mapBounds.bottom - 1000000,
-            this.mapBounds.right + 1000000,
-            this.mapBounds.top + 1000000).toGeometry().components[0];
+            mapBounds.left - 1000000,
+            mapBounds.bottom - 1000000,
+            mapBounds.right + 1000000,
+            mapBounds.top + 1000000).toGeometry().components[0];
         var mapBounds10000000 = new OpenLayers.Bounds(
-            this.mapBounds.left - 10000000,
-            this.mapBounds.bottom - 10000000,
-            this.mapBounds.right + 10000000,
-            this.mapBounds.top + 10000000).toGeometry().components[0];
+            mapBounds.left - 10000000,
+            mapBounds.bottom - 10000000,
+            mapBounds.right + 10000000,
+            mapBounds.top + 10000000).toGeometry().components[0];
         var style = {
             'fillColor': 'black',
             'fillOpacity': 0.16,
             'stroke': false
         };
 
+
+        this.layer.destroyFeatures();
         this.layer.addFeatures([
             new OpenLayers.Feature.Vector(new OpenLayers.Geometry.Polygon([
-                mapBounds100, this.mapBounds.toGeometry().components[0]]), {}, style),
+                mapBounds100, mapBounds.toGeometry().components[0]]), {}, style),
             new OpenLayers.Feature.Vector(new OpenLayers.Geometry.Polygon([
                 mapBounds1000, mapBounds100]), {}, style),
             new OpenLayers.Feature.Vector(new OpenLayers.Geometry.Polygon([
@@ -102,22 +101,14 @@ App.Download = Ext.extend(gxp.plugins.Tool, {
         ]);
     },
 
-    loadend: function() {
-        if (this.mapBounds) {
-            this.displayBbox();
-        }
-        this.mapBounds = null;
-    },
-
     /** api: method[addActions]
      */
     addActions: function() {
+        this.tool = this;
         this.target.addListener('ready', function() {
             this.layer = new OpenLayers.Layer.Vector();
             this.target.mapPanel.map.addLayer(this.layer);
         }, this);
-        this.tool = this;
-        this.target.mapPanel.osm.events.register('loadend', this, this.loadend);
         var action = new Ext.Action(this);
         return App.Download.superclass.addActions.apply(this, [action]);
     }
