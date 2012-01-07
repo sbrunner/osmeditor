@@ -223,15 +223,5 @@ Ext.onReady(function() {
         desable: true,
         control: new OpenLayers.Control.TransformFeature(osm, {preserveAspectRatio: true}),
         map: mapPanel.map
-    }));
-    mapPanel.getTopToolbar().addButton(new GeoExt.Action({
-        text: "Delete",
-        toggleGroup: "tool",
-        desable: true,
-        control: new OpenLayers.Control.SelectFeature(osm, {
-            onBeforeSelect: function(f) {
-            }
-        }),
-        map: mapPanel.map
     }));*/
 
