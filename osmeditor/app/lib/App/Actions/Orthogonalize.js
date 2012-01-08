@@ -122,17 +122,15 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
 
     extendGroupRec: function(group, newGroupMember, remaining) {
         group.push(newGroupMember);
-        remaining.forEach(function(candidate) {
-            if (candidate == null) {
-                return;
-            }
-            if (!arrayDisjovar (candidate.way.components, newGroupMember.way.nodes)) {
-                remaining.set(i, null);
-                extendGroupRec(group, candidate, remaining);
-            }
-        }, this);
-        for (var i = 0; i < remaining.length; ++i) {
+        for (var i = 0 ; i < remaining.length ; ++i) {
             var candidate = remaining[i];
+            if (candidate == null) {
+                continue;
+            }
+            if (!this.arrayDisjoint(candidate.nodes, newGroupMember.nodes)) {
+                remaining[i] = null;
+                this.extendGroupRec(group, candidate, remaining);
+            }
         }
     },
 
