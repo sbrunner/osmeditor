@@ -356,7 +356,7 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
             dp += this.nbDirections / 2;
         }
         var coor = Math.sin(a);
-        return this.rotate_cc({x: 0., y: 0.}, {x: -e * coor, y: 0.}, -this.directionAngle * dp);
+        return this.rotate_cc({x: 0., y: 0.}, {x: -e / coor, y: 0.}, -this.directionAngle * dp);
     },
 
     /**
