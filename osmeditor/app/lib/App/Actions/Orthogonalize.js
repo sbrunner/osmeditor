@@ -327,9 +327,12 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
 
             var dx = tmp.x - n.x;
             var dy = tmp.y - n.y;
+            var feature = this.target.mapPanel.getFeature(n.osm_id);
+            if (feature.action != "new" && (dx > 0.001 || dy > 0.001)) {
+                feature.action = "modified";
+            }
             n.move(dx, dy);
             if (this.target) {
-                var feature = this.target.mapPanel.getFeature(n.osm_id);
                 this.target.mapPanel.drawFeature(feature);
             }
 
