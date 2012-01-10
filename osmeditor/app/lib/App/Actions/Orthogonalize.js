@@ -182,7 +182,6 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
             this.calcDirections(wayDataList[0], 0);
             var refHeading = wayDataList[0].heading;
             wayDataList.forEach(function(w) {
-
                 this.calcDirections(w, 0);
                 var directionOffset = this.angleToDirectionChange(w.heading - refHeading, this.outerTolerance);
                 this.calcDirections(w, this.changeDirectionBy(0, directionOffset));
@@ -190,7 +189,7 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
                     throw "error 1";
                 }
             }, this);
-            var totSum = { x: 0, y: 0};
+            var totSum = {x: 0, y: 0};
             wayDataList.forEach(function(w) {
                 totSum = this.sum(totSum, w.segSum);
             }, this);
@@ -326,8 +325,8 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
             var tmp = this.sum(this.sum(nxy.point, c1), c2);
             tmp = this.rotate_cc(pivot, tmp, headingAll);
 
-            var dx = tmp.x.toFixed(3) - n.x;
-            var dy = tmp.y.toFixed(3) - n.y;
+            var dx = tmp.x - n.x;
+            var dy = tmp.y - n.y;
             n.move(dx, dy);
             if (this.target) {
                 var feature = this.target.mapPanel.getFeature(n.osm_id);
@@ -349,14 +348,15 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
             return {x: 0., y: 0.};
         }
         if (dp === undefined) {
-            return this.rotate_cc({x: 0., y: 0.}, {x: 0., y: -e}, this.directionAngle * d);
+            return this.rotate_cc({x: 0., y: 0.}, {x: 0, y: -e}, -this.directionAngle * d);
         }
-        var a = (dp - d) * this.directionAngle;
+        var a = (d - dp) * this.directionAngle;
         if (a < 0) {
-            a += Math.PI;
+            a = -a;
+            dp += this.nbDirections / 2;
         }
         var coor = Math.sin(a);
-        return this.rotate_cc({x: 0., y: 0.}, {y: 0., x: -e / coor}, this.directionAngle * dp);
+        return this.rotate_cc({x: 0., y: 0.}, {x: -e * coor, y: 0.}, -this.directionAngle * dp);
     },
 
     /**
@@ -396,7 +396,7 @@ App.Action.Orthogonalize = Ext.extend(gxp.plugins.Tool, {
 
         // rotate the vertical vector by 90 degrees (clockwise) and add it to the horizontal vector
         way.segSum = {x: 0., y: 0.};
-        for (var i = 0 ; i < this.nbDirections / 2 ; i++) {
+        for (var i = 0 ; i < this.nbDirections ; i++) {
             way.segSum = this.sum(way.segSum, this.rotate_cc({x: 0., y: 0.}, hv[i], i * this.directionAngle));
         }
         way.heading = this.polar({x: 0., y: 0.}, way.segSum);
