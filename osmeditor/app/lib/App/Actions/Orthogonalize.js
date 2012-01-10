@@ -560,7 +560,7 @@ new OpenLayers.Geometry.Point(0.9,1.1),
 new OpenLayers.Geometry.Point(1,0)
 ])]));
 console.log(way.geometry.toString());
-o90.ortho([way])
+o90.ortho([way]);
 console.log(way.geometry.toString());
 
 var way = new OpenLayers.Feature.Vector(
@@ -572,6 +572,86 @@ new OpenLayers.Geometry.Point(0.9,1.1),
 new OpenLayers.Geometry.Point(1,0)
 ])]));
 console.log(way.geometry.toString());
+o45.ortho([way]);
+console.log(way.geometry.toString());
+
+
+
+var way = new OpenLayers.Feature.Vector(
+new OpenLayers.Geometry.Polygon([
+new OpenLayers.Geometry.LinearRing([
+new OpenLayers.Geometry.Point(0,0),
+new OpenLayers.Geometry.Point(0,2.01),
+new OpenLayers.Geometry.Point(0.98,0.98),
+new OpenLayers.Geometry.Point(2.01,0)
+])]));
+console.log(way.geometry.toString());
 o45.ortho([way])
 console.log(way.geometry.toString());
+
+console.warn("****");
+var way = new OpenLayers.Feature.Vector(
+new OpenLayers.Geometry.Polygon([
+new OpenLayers.Geometry.LinearRing([
+new OpenLayers.Geometry.Point(0,2),
+new OpenLayers.Geometry.Point(0.99,0.99),
+new OpenLayers.Geometry.Point(2,0),
+new OpenLayers.Geometry.Point(3,-0.01),
+new OpenLayers.Geometry.Point(4,0),
+new OpenLayers.Geometry.Point(5.01,0.99),
+new OpenLayers.Geometry.Point(6,2),
+new OpenLayers.Geometry.Point(6.01,3),
+new OpenLayers.Geometry.Point(6,4),
+new OpenLayers.Geometry.Point(5.01,5.01),
+new OpenLayers.Geometry.Point(4,6),
+new OpenLayers.Geometry.Point(3,6.01),
+new OpenLayers.Geometry.Point(2,6),
+new OpenLayers.Geometry.Point(0.99,5.01),
+new OpenLayers.Geometry.Point(0,4),
+new OpenLayers.Geometry.Point(-0.01,3)
+])]));
+way.geometry.components[0].components.forEach(function(c){console.log(c.toString())});
+o45.ortho([way]);
+way.geometry.components[0].components.forEach(function(c){console.log(c.toString())});
+
+
+
+console.warn("****");
+var way = new OpenLayers.Feature.Vector(
+new OpenLayers.Geometry.Polygon([
+new OpenLayers.Geometry.LinearRing([
+new OpenLayers.Geometry.Point(0.01,0.01),
+new OpenLayers.Geometry.Point(1,-0.02),
+new OpenLayers.Geometry.Point(1.99,0.01),
+new OpenLayers.Geometry.Point(2.02,1),
+new OpenLayers.Geometry.Point(1.99,1.99),
+new OpenLayers.Geometry.Point(1,2.02),
+new OpenLayers.Geometry.Point(0.01,1.99),
+new OpenLayers.Geometry.Point(-0.02,1)
+])]));
+way.geometry.components[0].components.forEach(function(c){console.log(c.toString())});
+o45.ortho([way]);
+way.geometry.components[0].components.forEach(function(c){console.log(c.toString())});
+
+
+
+console.warn("****");
+var way = new OpenLayers.Feature.Vector(
+new OpenLayers.Geometry.Polygon([
+new OpenLayers.Geometry.LinearRing([
+new OpenLayers.Geometry.Point(0,0),
+new OpenLayers.Geometry.Point(2,0),
+new OpenLayers.Geometry.Point(1.01,1.01),
+new OpenLayers.Geometry.Point(2.01,2.01),
+new OpenLayers.Geometry.Point(1.01,3.01),
+new OpenLayers.Geometry.Point(2,4),
+new OpenLayers.Geometry.Point(0,4)
+])]));
+way.geometry.components[0].components.forEach(function(c){console.log(c.toString())});
+o45.ortho([way,
+new OpenLayers.Feature.Vector(new OpenLayers.Geometry.Point(0,0)),
+new OpenLayers.Feature.Vector(new OpenLayers.Geometry.Point(10,0))
+]);
+console.warn("****");
+way.geometry.components[0].components.forEach(function(c){console.log(c.toString())});
 */
