@@ -62,31 +62,19 @@ App.ModifyFeatureGeometry = Ext.extend(gxp.plugins.Tool, {
                     original.osm_id = f.osm_id;
                     OpenLayers.Control.ModifyFeature.prototype.selectFeature.apply(this, arguments);
                 },
-                dragVertex: function(vertex) {
-                    OpenLayers.Control.ModifyFeature.prototype.dragVertex.apply(this, arguments);
+                dragComplete: function(vertex) {
+                    OpenLayers.Control.ModifyFeature.prototype.dragComplete.apply(this, arguments);
 
-                    // TODO set modified
-                    /*if (f.type == 'node' && !f.action) {
-                        f.action = 'modified';
-                    }*/
-                    var dep = mapPanel.depandancies[vertex.osm_id];
+                    var fv = mapPanel.getFeature(vertex.geometry.osm_id);
+                    if (!fv.action) {
+                        fv.action = 'modified';
+                    }
+                    var dep = mapPanel.depandancies[vertex.geometry.osm_id];
                     if (dep) {
                         for (var i = 0, leni = dep.length; i < leni; i++) {
                             var id = dep[i];
-                            var fd = osm.getFeatureBy('osm_id', id);
+                            var fd = mapPanel.getFeature(id);
                             osm.drawFeature(fd);
-                            if (fd.type == 'node') {
-                                if (!fd.action) {
-                                    fd.action = 'modified';
-                                }
-                                var dep2 = mapPanel.depandancies[id];
-                                if (dep2) {
-                                    for (var j = 0, lenj = dep2.length; j < lenj; j++) {
-                                        var fd2 = osm.getFeatureBy('osm_id', dep2[j]);
-                                        mapPanel.map.getLayersByName("OSM")[0].drawFeature(fd2);
-                                    }
-                                }
-                            }
                         }
                     }
                 }
