@@ -55,17 +55,36 @@ App.DragFeature = Ext.extend(gxp.plugins.Tool, {
             onComplete: function(feature, pixel) {
                 var moveX = this.moveX;
                 var moveY = this.moveY;
+
+                var featureActions = {};
+                var features = {};
+                if (feature.type == 'node') {
+                    if (!feature.action) {
+                        featureActions[feature.osm_id] = feature.action;
+                        feature.action = 'modified';
+                    }
+                }
+                else {
+                    feature.geometry.getVertices().forEach(function(node) {
+                        var feature = mapPanel.getFeature(node.osm_id);
+                        if (!feature.action) {
+                            featureActions[feature.osm_id] = feature.action;
+                            features[feature.osm_id] = feature;
+                            feature.action = 'modified';
+                        }
+                    });
+                }
                 mapPanel.undoList.push({
                     undo: function(mapPanel) {
                         feature.geometry.move(-moveX, -moveY);
+                        for (osm_id in features) {
+                            features[osm_id].action = featureActions[osm_id];
+                        }
                         mapPanel.drawFeature(feature);
                     }
                 });
             },
             onDrag: function(f) {
-                if (f.type == 'node' && !f.action) {
-                    f.action = 'modified';
-                }
                 mapPanel.drawFeature(f);
             },
             moveFeature: function(pixel) {
