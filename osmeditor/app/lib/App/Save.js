@@ -19,7 +19,7 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
                 padding: '5px'
             }
         });
-        this.progressbar = new Ext.ProgressBar({ width: 300, layout: 'fit' });
+        this.progressbar = new Ext.ProgressBar({ width: 340 });
         var win = new Ext.Window({
             title: OpenLayers.i18n("Save"),
             width: 400,
@@ -48,6 +48,7 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
                         specialkey: function(field, e) {
                             if (e.getKey() == e.ENTER) {
                                 win.getLayout().setActiveItem('progress');
+                                this.progressbar.progressBar.setHeight(this.progressbar.el.dom.firstChild.offsetHeight);
                                 this.save(Ext.getCmp('ask').getForm().getValues()['comment']);
                             }
                         },
@@ -58,6 +59,7 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
                     text: OpenLayers.i18n('Save'),
                     handler : function(e) {
                         win.getLayout().setActiveItem('progress');
+                        this.progressbar.progressBar.setHeight(this.progressbar.el.dom.firstChild.offsetHeight);
                         this.save(Ext.getCmp('ask').getForm().getValues()['comment']);
                     },
                     scope: this
@@ -189,6 +191,7 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
     todoNext: function() {
         this.todoPos += 1;
         this.progressbar.updateProgress(this.todoPos / this.todo.length);
+
         if (this.todoPos < this.todo.length) {
             this.todo[this.todoPos]();
         }
