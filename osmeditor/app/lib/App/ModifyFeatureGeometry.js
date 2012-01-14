@@ -17,6 +17,7 @@ App.ModifyFeatureGeometry = Ext.extend(gxp.plugins.Tool, {
     addActions: function() {
         var mapPanel = this.target.mapPanel;
         var original = null;
+        var featureActions = {};
         this.control = new OpenLayers.Control.ModifyFeature(mapPanel.osm, {
                 unselectFeature: function(f) {
                     OpenLayers.Control.ModifyFeature.prototype.unselectFeature.apply(this, arguments);
@@ -25,6 +26,8 @@ App.ModifyFeatureGeometry = Ext.extend(gxp.plugins.Tool, {
                     }, this);
 
                     var o = original;
+                    var al = featureActions;
+                    featureActions = {};
                     mapPanel.undoList.push({
                         undo: function(mapPanel) {
                             var components = [];
@@ -33,13 +36,13 @@ App.ModifyFeatureGeometry = Ext.extend(gxp.plugins.Tool, {
                                 c = c[0].components;
                             }
                             c.forEach(function(p) {
-                                var a = mapPanel.osm.getFeatureBy('osm_id', p.osm_id);
+                                var a = mapPanel.getFeature(p.osm_id);
                                 a.geometry.x = p.x;
                                 a.geometry.y = p.y;
                                 components.push(p.osm_id);
                             }, this);
 
-                            var ga = mapPanel.osm.getFeatureBy('osm_id', o.osm_id);
+                            var ga = mapPanel.getFeature(o.osm_id);
                             var line = ga.geometry;
                             if (line.CLASS_NAME == "OpenLayers.Geometry.Polygon") {
                                 line = line.components[0];
@@ -52,8 +55,12 @@ App.ModifyFeatureGeometry = Ext.extend(gxp.plugins.Tool, {
                             }, this);
 
                             f.geometry.getVertices().forEach(function(p) {
-                                mapPanel.drawFeature(mapPanel.osm.getFeatureBy('osm_id', p.osm_id));
+                                mapPanel.drawFeature(mapPanel.getFeature(p.osm_id));
                             }, this);
+
+                            for (var osm_id in al) {
+                                mapPanel.getFeature(osm_id).action = al[osm_id];
+                            }
                         }
                     });
                 },
@@ -67,16 +74,10 @@ App.ModifyFeatureGeometry = Ext.extend(gxp.plugins.Tool, {
 
                     var fv = mapPanel.getFeature(vertex.geometry.osm_id);
                     if (!fv.action) {
+                        featureActions[fv.osm_id] = fv.action;
                         fv.action = 'modified';
                     }
-                    var dep = mapPanel.depandancies[vertex.geometry.osm_id];
-                    if (dep) {
-                        for (var i = 0, leni = dep.length; i < leni; i++) {
-                            var id = dep[i];
-                            var fd = mapPanel.getFeature(id);
-                            osm.drawFeature(fd);
-                        }
-                    }
+                    mapPanel.drawFeature(vertex);
                 }
             }
         );
@@ -94,6 +95,7 @@ App.ModifyFeatureGeometry = Ext.extend(gxp.plugins.Tool, {
                 f.geometry = vertex.geometry;
                 this.feature.layer.addFeatures(f);
                 if (this.feature.action != 'new') {
+                    featureActions[this.feature.osm_id] = this.feature.action;
                     this.feature.action = "modified";
                 }
             }
