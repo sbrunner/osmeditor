@@ -588,6 +588,9 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
                 this.popup = null;
 
                 control.unselectAll();
+                grid.destroy();
+                grid = null;
+                store = null;
             }, tool);
             tool.popup.show();
         };
