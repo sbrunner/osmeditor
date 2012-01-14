@@ -471,9 +471,6 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
                 if (fd) {
                     this.osm.drawFeature(fd);
                     if (fd.type == 'node') {
-                        if (!fd.action) {
-                            fd.action = 'modified';
-                        }
                         var dep2 = this.depandancies[id];
                         if (dep2) {
                             for (var j = 0, lenj = dep2.length; j < lenj; j++) {
