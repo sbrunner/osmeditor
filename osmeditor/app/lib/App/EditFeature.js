@@ -536,8 +536,12 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
             grid.getBottomToolbar().add({
                 text: OpenLayers.i18n("Delete"),
                 handler: function() {
+                    delete f.attributes[grid.getSelectionModel().getSelected().data.property]
                     store.remove(grid.getSelectionModel().getSelected());
                     grid.getView().refresh();
+                    f.selectStyle = f.layer.staticStyleMap.createSymbolizer(f, "select");
+                    f.defaultStyle = f.layer.staticStyleMap.createSymbolizer(f);
+                    mapPanel.osm.drawFeature(feature);
                 }
             });
             grid.getBottomToolbar().add({
