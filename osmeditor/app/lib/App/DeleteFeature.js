@@ -55,10 +55,15 @@ App.DeleteFeature = Ext.extend(gxp.plugins.Tool, {
                         }
                         geometry.removeComponent(feature.geometry);
                         this.target.mapPanel.drawFeature(feature);
+                        var action = f.action;
+                        if (!action) {
+                            f.action = 'modified';
+                        }
                         undo.list.push({
                             undo: function(mapPanel) {
-                                geometry.addComponent(feature.geometry, index)
-                                this.target.mapPanel.drawFeature(f);
+                                geometry.addComponent(feature.geometry, index);
+                                f.action = action;
+                                mapPanel.drawFeature(f);
                             }
                         });
                     }, this);
@@ -67,7 +72,7 @@ App.DeleteFeature = Ext.extend(gxp.plugins.Tool, {
                     dep.forEach(function (osmid) {
                         var d = this.target.mapPanel.depandancies[osmid];
                         if (!d || d.length <= 1) {
-                            var f = this.layer.getFeatureBy('osm_id', osmid);
+                            var f = this.target.mapPanel.getFeature(osmid);
                             if (!this.hasAttributes(f)) {
                                 this.target.mapPanel.deletedFeatures.push(f);
                                 deletedFeatures.push(f);
@@ -80,11 +85,10 @@ App.DeleteFeature = Ext.extend(gxp.plugins.Tool, {
                 undo.list.push({
                     undo: function(mapPanel) {
                         deletedFeatures.forEach(function (feature) {
-                            this.target.mapPanel.deletedFeatures = this.target.mapPanel.deletedFeatures.splice(
-                                    this.target.mapPanel.deletedFeatures.indexOf(feature), 1);
-                            this.target.mapPanel.drawFeature(feature);
+                            mapPanel.deletedFeatures = OpenLayers.Util.removeItem(mapPanel.deletedFeatures, feature);
+                            mapPanel.drawFeature(feature);
                         });
-                        this.target.mapPanel.osm.addFeatures(deletedFeatures);
+                        mapPanel.osm.addFeatures(deletedFeatures);
                     }
                 });
             }

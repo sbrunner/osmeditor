@@ -290,8 +290,7 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
             this.addAction(f, '/api/0.6/' + f.type + '/' + f.osm_id, 'DELETE',
                     OpenLayers.i18n("Unable to delete a " + f.type + "."),
                     function(r) {
-                        mapPanel.deletedFeatures = mapPanel.deletedFeatures.splice(
-                                mapPanel.deletedFeatures.indexOf(f), 1);
+                        mapPanel.deletedFeatures = OpenLayers.Util.removeItem(mapPanel.deletedFeatures, f);
                         save.todoNext();
                     });
         }, this);
