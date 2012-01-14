@@ -541,7 +541,7 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
                     grid.getView().refresh();
                     f.selectStyle = f.layer.staticStyleMap.createSymbolizer(f, "select");
                     f.defaultStyle = f.layer.staticStyleMap.createSymbolizer(f);
-                    mapPanel.osm.drawFeature(feature);
+                    mapPanel.osm.drawFeature(f);
                 }
             });
             grid.getBottomToolbar().add({
@@ -574,12 +574,16 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
                 var feature = f;
 
                 if (!this.equals(properties, feature.attributes)) {
-                    feature.action = 'modified';
+                    var action = feature.action;
+                    if (!action) {
+                        feature.action = 'modified';
+                    }
                     mapPanel.undoList.push({
                         undo: function(mapPanel) {
                             feature.attributes = properties;
                             feature.selectStyle = feature.layer.staticStyleMap.createSymbolizer(f, "select");
                             feature.defaultStyle = feature.layer.staticStyleMap.createSymbolizer(f);
+                            feature.action = action;
                             mapPanel.osm.drawFeature(feature);
                         }
                     });
