@@ -73,7 +73,7 @@ App.ModifyFeatureGeometry = Ext.extend(gxp.plugins.Tool, {
                     OpenLayers.Control.ModifyFeature.prototype.dragComplete.apply(this, arguments);
 
                     var fv = mapPanel.getFeature(vertex.geometry.osm_id);
-                    if (!fv.action) {
+                    if (fv.action != 'new') {
                         featureActions[fv.osm_id] = fv.action;
                         fv.action = 'modified';
                     }

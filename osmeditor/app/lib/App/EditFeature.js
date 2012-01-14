@@ -575,7 +575,7 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
 
                 if (!this.equals(properties, feature.attributes)) {
                     var action = feature.action;
-                    if (!action) {
+                    if (action != 'new') {
                         feature.action = 'modified';
                     }
                     mapPanel.undoList.push({

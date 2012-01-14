@@ -56,7 +56,7 @@ App.DeleteFeature = Ext.extend(gxp.plugins.Tool, {
                         geometry.removeComponent(feature.geometry);
                         this.target.mapPanel.drawFeature(feature);
                         var action = f.action;
-                        if (!action) {
+                        if (action != 'new') {
                             f.action = 'modified';
                         }
                         undo.list.push({

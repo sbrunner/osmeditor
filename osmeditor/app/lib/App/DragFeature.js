@@ -59,7 +59,7 @@ App.DragFeature = Ext.extend(gxp.plugins.Tool, {
                 var featureActions = {};
                 var features = {};
                 if (feature.type == 'node') {
-                    if (!feature.action) {
+                    if (feature.action != 'new') {
                         featureActions[feature.osm_id] = feature.action;
                         feature.action = 'modified';
                     }
@@ -67,7 +67,7 @@ App.DragFeature = Ext.extend(gxp.plugins.Tool, {
                 else {
                     feature.geometry.getVertices().forEach(function(node) {
                         var feature = mapPanel.getFeature(node.osm_id);
-                        if (!feature.action) {
+                        if (feature.action != 'new') {
                             featureActions[feature.osm_id] = feature.action;
                             features[feature.osm_id] = feature;
                             feature.action = 'modified';
