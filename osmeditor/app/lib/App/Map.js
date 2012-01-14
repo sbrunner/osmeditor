@@ -142,9 +142,6 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
             this.update(e);
         });
         this.osm.events.register('featuremodified', this, function(e) {
-            if (!e.feature.action) {
-                e.feature.action = 'modified';
-            }
             this.update(e);
         });
 
