@@ -437,30 +437,6 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
         this.addWord('waterway', 'wadi');
         this.addWord('waterway', 'weir');
 
-        var keyEditor = new Ext.form.ComboBox({
-            mode: 'local',
-            store: new Ext.data.ArrayStore({
-                fields: ['text'],
-                data: this.keys
-            }),
-            emptyText: '...',
-            displayField: 'text',
-            valueField: 'text',
-            minChars: 1
-        });
-
-        var valueEditor = new Ext.form.ComboBox({
-            mode: 'local',
-            store: new Ext.data.ArrayStore({
-                fields: ['text'],
-                data: []
-            }),
-            emptyText: '...',
-            displayField: 'text',
-            valueField: 'text',
-            minChars: 1
-        });
-
         var mapPanel = this.target.mapPanel;
         var control = new App.SelectFeature(mapPanel.osm, {});
         var tool = this;
@@ -491,12 +467,33 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
                 fields: ['property', 'value'],
                 data: data
             });
+            var keyEditor = new Ext.form.ComboBox({
+                mode: 'local',
+                store: new Ext.data.ArrayStore({
+                    fields: ['text'],
+                    data: tool.keys
+                }),
+                emptyText: '...',
+                displayField: 'text',
+                valueField: 'text',
+                minChars: 1
+            });
+            var valueEditor = new Ext.form.ComboBox({
+                mode: 'local',
+                store: new Ext.data.ArrayStore({
+                    fields: ['text'],
+                    data: []
+                }),
+                emptyText: '...',
+                displayField: 'text',
+                valueField: 'text',
+                minChars: 1
+            });
             var grid = new Ext.grid.EditorGridPanel({
                 store: store,
                 colModel: new Ext.grid.ColumnModel({
                     defaults: {
-                        width: 120,
-                        editor: new Ext.form.TextField()
+                        width: 120
                     },
                     columns: [
                         {header: OpenLayers.i18n('Property'), dataIndex: 'property', editor: keyEditor},
