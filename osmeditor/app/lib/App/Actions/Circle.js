@@ -61,11 +61,16 @@ App.Action.Circle = Ext.extend(gxp.plugins.Tool, {
             var moveY = (point.y - center.y) * rr;
 
             var feature = this.target.mapPanel.getFeature(point.osm_id);
+            var action = feature.action;
+            if (action != "new" && (moveX > 0.001 || moveY > 0.001)) {
+                feature.action = "modified";
+            }
             feature.geometry.move(moveX, moveY);
             this.target.mapPanel.drawFeature(feature);
             undo.list.push({
                 undo: function(mapPanel) {
                     feature.geometry.move(-moveX, -moveY);
+                    feature.action = action;
                     mapPanel.drawFeature(feature);
                 }
             });
