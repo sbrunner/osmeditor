@@ -39,7 +39,7 @@ App.Download = Ext.extend(gxp.plugins.Tool, {
                 this.tool.displayBbox(this.target.mapPanel.bboxstrategie.bounds);
                 this.target.mapPanel.undoList = [];
                 this.target.mapPanel.depandancies = {};
-                this.target.mapPanel.bboxstrategie.update();
+                this.target.mapPanel.bboxstrategie.update({force: true});
             }
         }
     },
