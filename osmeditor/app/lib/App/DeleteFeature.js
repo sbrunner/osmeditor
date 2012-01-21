@@ -35,7 +35,9 @@ App.DeleteFeature = Ext.extend(gxp.plugins.Tool, {
         features.forEach(function (feature) {
             // TODO test if in relation and in download bbox
 
-            this.target.mapPanel.deletedFeatures.push(feature);
+            if (feature.action != 'new') {
+                this.target.mapPanel.deletedFeatures.push(feature);
+            }
             var deletedFeatures = [feature];
 
             var dep = this.target.mapPanel.depandancies[feature.osm_id];
@@ -74,7 +76,9 @@ App.DeleteFeature = Ext.extend(gxp.plugins.Tool, {
                         if (!d || d.length <= 1) {
                             var f = this.target.mapPanel.getFeature(osmid);
                             if (!this.hasAttributes(f)) {
-                                this.target.mapPanel.deletedFeatures.push(f);
+                                if (f.action != 'new') {
+                                    this.target.mapPanel.deletedFeatures.push(f);
+                                }
                                 deletedFeatures.push(f);
                             }
                         }
@@ -85,7 +89,9 @@ App.DeleteFeature = Ext.extend(gxp.plugins.Tool, {
                 undo.list.push({
                     undo: function(mapPanel) {
                         deletedFeatures.forEach(function (feature) {
-                            mapPanel.deletedFeatures = OpenLayers.Util.removeItem(mapPanel.deletedFeatures, feature);
+                            if (feature.action != 'new') {
+                                mapPanel.deletedFeatures = OpenLayers.Util.removeItem(mapPanel.deletedFeatures, feature);
+                            }
                             mapPanel.drawFeature(feature);
                         });
                         mapPanel.osm.addFeatures(deletedFeatures);
