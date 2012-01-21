@@ -41,6 +41,7 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
                 },
                 items: [{
                     fieldLabel: OpenLayers.i18n('Change set comment'),
+                    value: Ext.util.Cookies.get('last_save_message'),
                     xtype: 'textfield',
                     name: 'comment',
                     allowBlank: false,
@@ -205,6 +206,7 @@ App.Save = Ext.extend(gxp.plugins.Tool, {
     },
 
     save: function(comment) {
+        Ext.util.Cookies.set('last_save_message', comment);
         var save = this;
 
         this.todoPos = -1; // -1 mean not started
