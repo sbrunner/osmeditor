@@ -35,7 +35,8 @@ App.Download = Ext.extend(gxp.plugins.Tool, {
             var mapBounds = this.target.mapPanel.bboxstrategie.getMapBounds();
             if (mapBounds !== null && this.target.mapPanel.bboxstrategie.invalidBounds(mapBounds)) {
                 this.target.mapPanel.osm.destroyFeatures();
-                this.tool.displayBbox(mapBounds);
+                this.target.mapPanel.bboxstrategie.calculateBounds(mapBounds);
+                this.tool.displayBbox(this.target.mapPanel.bboxstrategie.bounds);
                 this.target.mapPanel.undoList = [];
                 this.target.mapPanel.depandancies = {};
                 this.target.mapPanel.bboxstrategie.update();
