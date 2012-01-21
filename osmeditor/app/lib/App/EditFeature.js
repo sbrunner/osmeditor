@@ -377,6 +377,10 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
         this.addWord('religion', 'muslim');
         this.addWord('religion', 'sikh');
         this.addWord('service', 'parking_aisle');
+        this.addWord('service', 'driveway');
+        this.addWord('service', 'alley');
+        this.addWord('service', 'emergency_access');
+        this.addWord('service', 'drive-through');
         this.addWord('shop', 'bakery');
         this.addWord('shop', 'bicycle');
         this.addWord('shop', 'butcher');
