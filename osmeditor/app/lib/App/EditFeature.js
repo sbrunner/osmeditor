@@ -100,7 +100,6 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
         this.addWord('amenity', 'hospital');
         this.addWord('amenity', 'kindergarten');
         this.addWord('amenity', 'library');
-        this.addWord('amenity', 'place_of_worship');
         this.addWord('amenity', 'parking');
         this.addWord('amenity', 'pharmacy');
         this.addWord('amenity', 'picnic_site');
@@ -126,8 +125,6 @@ App.EditFeature = Ext.extend(gxp.plugins.Tool, {
         this.addWord('barrier', 'lift_gate');
         this.addAccessWord('bicycle');
         this.addWord('building', 'yes');
-        this.addWord('building', 'station');
-        this.addWord('building', 'supermarket');
         this.addWord('building', 'station');
         this.addWord('building', 'supermarket');
         this.addAccessWord('bus');
