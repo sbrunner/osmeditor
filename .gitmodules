@@ -16,3 +16,6 @@
 [submodule "osmeditor/lib/geoext"]
 	path = osmeditor/lib/geoext
 	url = git@github.com:geoext/geoext.git
+[submodule "osmeditor/lib/cgxp"]
+	path = osmeditor/lib/cgxp
+	url = git@github.com:camptocamp/cgxp.git
