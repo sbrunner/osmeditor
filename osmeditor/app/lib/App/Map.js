@@ -150,6 +150,25 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
             targets: [this.osm],
             autoActivate: true
         }));
+
+        var self = this;
+        window.onbeforeunload = function(e) {
+            if (self.osm.getFeatureBy('action', 'modified') ||
+                    self.osm.getFeatureBy('action', 'new') ||
+                    self.deletedFeatures.length > 0) {
+                var message = OpenLayers.i18n("You have some unsaved data. Do you want to close without saving.")
+
+                e = e || window.event;
+
+                // For IE and Firefox prior to version 4
+                if (e) {
+                    e.returnValue = message;
+                }
+
+                // For Safari
+                return message;
+            }
+        }
     },
 
     /** private: method[applyState]
