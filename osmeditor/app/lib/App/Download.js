@@ -78,7 +78,7 @@ App.Download = Ext.extend(gxp.plugins.Tool, {
             mapBounds.top + 10000000).toGeometry().components[0];
         var style = {
             'fillColor': 'black',
-            'fillOpacity': 0.2,
+            'fillOpacity': 0.25,
             'stroke': false
         };
 
