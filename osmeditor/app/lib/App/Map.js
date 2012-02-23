@@ -5,10 +5,8 @@
  * @include OpenLayers/Layer/Vector.js
  * @include OpenLayers/Strategy/BBOX.js
  * @include OpenLayers/Format/OSM.js
- * @include OSM/Style/Utils.js
  * @include OSM/Style/Mapnik.js
  * @include OSM/Style/JOSM.js
- * @include OSM/Style/StyleMap.js
  * @include App/Snapping.js
  * @include App/CombinedUndo.js
  */
@@ -69,9 +67,9 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
                 }
             }
         });
-        this.addStyle('yellow', styleMap.styles["default"]);
-        this.addStyle('blue', styleMap.styles["select"]);
-        this.addStyle('green', styleMap.styles["temporary"]);
+        OSM.Style.Utils.addStyle('yellow', styleMap.styles["default"]);
+        OSM.Style.Utils.addStyle('blue', styleMap.styles["select"]);
+        OSM.Style.Utils.addStyle('green', styleMap.styles["temporary"]);
         styleMap.build();
 
         this.bboxstrategie = new OpenLayers.Strategy.BBOX({
@@ -112,8 +110,8 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
         });
 
         this.osm.staticStyleMap = new OSM.Style.StyleMap();
-        this.addStyle('yellow', this.osm.staticStyleMap.styles["default"]);
-        this.addStyle('blue', this.osm.staticStyleMap.styles["select"]);
+        OSM.Style.Utils.addStyle('yellow', this.osm.staticStyleMap.styles["default"]);
+        OSM.Style.Utils.addStyle('blue', this.osm.staticStyleMap.styles["select"]);
         this.osm.staticStyleMap = OSM.Style.JOSM.getStyleMap(this.osm.staticStyleMap);
         this.osm.staticStyleMap = OSM.Style.Mapnik.getStyleMap(this.osm.staticStyleMap);
         this.osm.staticStyleMap.build();
@@ -195,40 +193,6 @@ App.Map = Ext.extend(GeoExt.MapPanel, {
         } : {};
 
         return state;
-    },
-
-    addStyle: function(color, destination) {
-        destination.point.addRules([new OpenLayers.Rule({
-            symbolizer: {
-                pointRadius: 3,
-                fillOpacity: 1,
-                fillColor: color,
-                strokeOpacity: 0,
-                strokeWidth: 20,
-                fontSize: 10,
-                fontFamily: 'sans-serif'
-            }
-        })]);
-        destination.stroke.addRules([new OpenLayers.Rule({
-            symbolizer: {
-                pointRadius: 5,
-                strokeColor: color,
-                strokeWidth: 3,
-                fontSize: 10,
-                fontFamily: 'sans-serif'
-            }
-        })]);
-        destination.area.addRules([new OpenLayers.Rule({
-            symbolizer: {
-                pointRadius: 5,
-                fillOpacity: 0.4,
-                fillColor: color,
-                strokeColor: color,
-                strokeWidth: 1,
-                fontSize: 10,
-                fontFamily: 'sans-serif'
-            }
-        })]);
     },
 
     update: function(e) {
